@@ -36,7 +36,7 @@ export function ProbabilityHistogram({
   const { keys, values, labels, customdata } = useMemo(() => {
     const ks = Object.keys(probabilities).sort();
     const vs = ks.map((key) => probabilities[key] ?? 0);
-    const ls = ks.map((key) => `|${key}\u27E9`);
+    const ls = ks.map((key) => `|${key}⟩`);
     const cd = ks.map((key) => [key, counts?.[key] ?? 0] as const);
     return { keys: ks, values: vs, labels: ls, customdata: cd };
   }, [probabilities, counts]);

@@ -92,7 +92,7 @@ function BellWires() {
           <Ket value="0" />
         </StepBox>
         <Arrow />
-        <StepBox>{"\u2295 (target)"}</StepBox>
+        <StepBox>⊕ (target)</StepBox>
         <Arrow />
         <StepBox>Measurement</StepBox>
       </div>

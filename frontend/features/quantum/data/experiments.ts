@@ -13,18 +13,18 @@ export const QUANTUM_EXPERIMENTS: readonly QuantumExperiment[] = [
   {
     id: "superposition",
     title: "Superposition",
-    subtitle: "1 qubit \u2014 Hadamard gate",
+    subtitle: "1 qubit — Hadamard gate",
     qubits: 1,
     status: "available",
     description:
-      "Create a superposition state from |0\u27E9 or |1\u27E9 and observe probabilistic measurement results.",
+      "Create a superposition state from |0⟩ or |1⟩ and observe probabilistic measurement results.",
     learningGoal:
       "Understand how a Hadamard gate produces an equal superposition and how measurement collapses it.",
   },
   {
     id: "entanglement",
     title: "Entanglement",
-    subtitle: "2 qubits \u2014 Bell state",
+    subtitle: "2 qubits — Bell state",
     qubits: 2,
     status: "available",
     description:
@@ -35,7 +35,7 @@ export const QUANTUM_EXPERIMENTS: readonly QuantumExperiment[] = [
   {
     id: "ideal-vs-noise",
     title: "Ideal vs Noisy Simulation",
-    subtitle: "1\u20132 qubits \u2014 noise comparison",
+    subtitle: "1–2 qubits — noise comparison",
     qubits: "1-2",
     status: "coming-soon",
     description:
@@ -46,7 +46,7 @@ export const QUANTUM_EXPERIMENTS: readonly QuantumExperiment[] = [
   {
     id: "security-case",
     title: "Quantum Security Case",
-    subtitle: "1\u20132 qubits \u2014 didactic scenario",
+    subtitle: "1–2 qubits — didactic scenario",
     qubits: "1-2",
     status: "coming-soon",
     description:

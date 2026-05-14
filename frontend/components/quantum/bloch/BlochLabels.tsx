@@ -16,10 +16,10 @@ interface LabelSpec {
 }
 
 const LABELS: ReadonlyArray<LabelSpec> = [
-  { position: [0, 0, LABEL_OFFSET], text: "|0\u27E9" },
-  { position: [0, 0, -LABEL_OFFSET], text: "|1\u27E9" },
-  { position: [LABEL_OFFSET, 0, 0], text: "|+\u27E9" },
-  { position: [-LABEL_OFFSET, 0, 0], text: "|\u2212\u27E9" },
+  { position: [0, 0, LABEL_OFFSET], text: "|0⟩" },
+  { position: [0, 0, -LABEL_OFFSET], text: "|1⟩" },
+  { position: [LABEL_OFFSET, 0, 0], text: "|+⟩" },
+  { position: [-LABEL_OFFSET, 0, 0], text: "|−⟩" },
 ];
 
 export function BlochLabels() {

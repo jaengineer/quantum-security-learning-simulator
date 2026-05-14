@@ -85,7 +85,7 @@ const LEGEND: ReadonlyArray<LegendItem> = [
   {
     symbol: <XSymbol />,
     name: "Pauli-X gate",
-    description: "Bit-flip: maps |0\u27E9 to |1\u27E9 and vice versa.",
+    description: "Bit-flip: maps |0⟩ to |1⟩ and vice versa.",
   },
   {
     symbol: <ControlSymbol />,
@@ -94,8 +94,8 @@ const LEGEND: ReadonlyArray<LegendItem> = [
   },
   {
     symbol: <TargetSymbol />,
-    name: "CNOT target (\u2295)",
-    description: "Receives an X flip when the control qubit is |1\u27E9.",
+    name: "CNOT target (⊕)",
+    description: "Receives an X flip when the control qubit is |1⟩.",
   },
   {
     symbol: <MeasurementSymbol />,

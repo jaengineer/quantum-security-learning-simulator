@@ -45,7 +45,7 @@ const CNOT_GATE: ExperimentGateContent = {
   matrix:
     "\\mathrm{CNOT} = \\begin{pmatrix} 1 & 0 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 0 & 0 & 1 \\\\ 0 & 0 & 1 & 0 \\end{pmatrix}",
   physicalEffect:
-    "Flips the target qubit if and only if the control qubit is |1\u27E9. Combined with Hadamard, it is the canonical way to entangle two qubits.",
+    "Flips the target qubit if and only if the control qubit is |1⟩. Combined with Hadamard, it is the canonical way to entangle two qubits.",
   example: {
     input: "\\mathrm{CNOT}\\,\\tfrac{1}{\\sqrt{2}}(\\lvert 00\\rangle + \\lvert 10\\rangle)",
     output: "\\tfrac{1}{\\sqrt{2}}(\\lvert 00\\rangle + \\lvert 11\\rangle)",
@@ -71,7 +71,7 @@ export const EXPERIMENT_CONTENT: Record<ExperimentType, ExperimentContent> = {
     concept: {
       title: "Concept",
       description:
-        "A qubit can exist in a linear combination (superposition) of the computational-basis states |0\u27E9 and |1\u27E9. The Hadamard gate is the canonical primitive that maps a definite basis state into an equal superposition.",
+        "A qubit can exist in a linear combination (superposition) of the computational-basis states |0⟩ and |1⟩. The Hadamard gate is the canonical primitive that maps a definite basis state into an equal superposition.",
       takeaway:
         "Before measurement the qubit is in a superposition; the act of measurement collapses it into one of the two basis states.",
       formula: {
@@ -84,7 +84,7 @@ export const EXPERIMENT_CONTENT: Record<ExperimentType, ExperimentContent> = {
     physicalInterpretation: {
       title: "Physical interpretation",
       description:
-        "After applying H, measuring in the computational basis yields |0\u27E9 or |1\u27E9 each with probability 1/2. The empirical ratio counts/shots approaches this 50/50 distribution as the number of shots grows.",
+        "After applying H, measuring in the computational basis yields |0⟩ or |1⟩ each with probability 1/2. The empirical ratio counts/shots approaches this 50/50 distribution as the number of shots grows.",
       keyFormula: {
         expression:
           "P(\\lvert 0\\rangle) = P(\\lvert 1\\rangle) = \\tfrac{1}{2}",
@@ -96,7 +96,7 @@ export const EXPERIMENT_CONTENT: Record<ExperimentType, ExperimentContent> = {
     concept: {
       title: "Concept",
       description:
-        "Two qubits are entangled when their joint state cannot be written as the product of two single-qubit states. The Bell state \u03A6\u207A is the simplest example and is produced with one Hadamard plus one CNOT.",
+        "Two qubits are entangled when their joint state cannot be written as the product of two single-qubit states. The Bell state Φ⁺ is the simplest example and is produced with one Hadamard plus one CNOT.",
       takeaway:
         "Entanglement makes the measurement outcomes of the two qubits perfectly correlated, regardless of the distance between them.",
       formula: {
@@ -109,7 +109,7 @@ export const EXPERIMENT_CONTENT: Record<ExperimentType, ExperimentContent> = {
     physicalInterpretation: {
       title: "Physical interpretation",
       description:
-        "Measuring \u03A6\u207A in the computational basis only ever yields |00\u27E9 or |11\u27E9, each with probability 1/2. The outcomes |01\u27E9 and |10\u27E9 have zero probability in an ideal simulator; observing them would signal noise or decoherence.",
+        "Measuring Φ⁺ in the computational basis only ever yields |00⟩ or |11⟩, each with probability 1/2. The outcomes |01⟩ and |10⟩ have zero probability in an ideal simulator; observing them would signal noise or decoherence.",
       keyFormula: {
         expression:
           "P(\\lvert 00\\rangle) = P(\\lvert 11\\rangle) = \\tfrac{1}{2}, \\quad P(\\lvert 01\\rangle) = P(\\lvert 10\\rangle) = 0",
