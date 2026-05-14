@@ -1,8 +1,57 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/* Quantum visual design system                                        */
+/* ------------------------------------------------------------------ */
+/*
+ * CSS variables here mirror the constants exported by
+ * ``styles/quantum-theme.ts``. Keep both in sync. JS consumers (R3F, Plotly,
+ * Framer) read the TS constants; CSS/Tailwind utilities read these vars.
+ */
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+
+  /* Core palette */
+  --color-quantum-deep: #0b1e3f;
+  --color-quantum-navy: #020617;
+  --color-quantum-cyan: #22d3ee;
+  --color-quantum-cyan-dim: #67e8f9;
+  --color-quantum-violet: #7c3aed;
+  --color-quantum-violet-dim: #a78bfa;
+  --color-quantum-gray-soft: #94a3b8;
+  --color-quantum-gray-deep: #1e293b;
+
+  /* Semantic states */
+  --color-state-active: var(--color-quantum-cyan);
+  --color-state-superposition: var(--color-quantum-violet);
+  --color-state-entangled: #c026d3;
+  --color-state-impossible: rgba(148, 163, 184, 0.45);
+  --color-state-measured: #0f172a;
+
+  /* Shadows + glow */
+  --shadow-quantum-soft: 0 1px 2px 0 rgba(15, 23, 42, 0.06),
+    0 1px 4px -1px rgba(15, 23, 42, 0.06);
+  --shadow-quantum-card: 0 10px 30px -20px rgba(15, 23, 42, 0.35);
+  --glow-quantum-cyan: 0 0 28px -8px rgba(34, 211, 238, 0.55);
+  --glow-quantum-violet: 0 0 28px -8px rgba(124, 58, 237, 0.55);
+  --glow-quantum-entangled: 0 0 24px -6px rgba(192, 38, 211, 0.55);
+
+  /* React Flow wire color (consumed by the QuantumWire edge) */
+  --quantum-wire-color: var(--color-quantum-gray-soft);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020617;
+    --foreground: #e2e8f0;
+
+    --color-state-measured: #e2e8f0;
+    --color-state-impossible: rgba(100, 116, 139, 0.55);
+
+    --quantum-wire-color: #64748b;
+  }
 }
 
 @theme inline {
@@ -10,13 +59,16 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #e2e8f0;
-  }
+  --color-quantum-deep: var(--color-quantum-deep);
+  --color-quantum-navy: var(--color-quantum-navy);
+  --color-quantum-cyan: var(--color-quantum-cyan);
+  --color-quantum-violet: var(--color-quantum-violet);
+  --color-state-active: var(--color-state-active);
+  --color-state-superposition: var(--color-state-superposition);
+  --color-state-entangled: var(--color-state-entangled);
+  --color-state-impossible: var(--color-state-impossible);
+  --color-state-measured: var(--color-state-measured);
 }
 
 body {
@@ -24,4 +76,35 @@ body {
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/* Minimal scrollbar used by the timeline + KaTeX formula viewports    */
+/* ------------------------------------------------------------------ */
+.quantum-thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+.quantum-thin-scroll::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.quantum-thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.quantum-thin-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+.quantum-thin-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(124, 58, 237, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  .quantum-thin-scroll {
+    scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+  }
+  .quantum-thin-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.4);
+  }
 }

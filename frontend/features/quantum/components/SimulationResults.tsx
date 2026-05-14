@@ -1,5 +1,8 @@
+import { VerticalQuantumEvolutionTimeline } from "@/components/quantum/animation/VerticalQuantumEvolutionTimeline";
+import { QuantumDistributionChart } from "@/components/quantum/charts/QuantumDistributionChart";
+import { QuantumCircuitCanvas } from "@/components/quantum/circuit/QuantumCircuitCanvas";
+import type { CircuitVisualMode } from "@/components/quantum/circuit/QuantumCircuitCanvas";
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
-import { CircuitDiagram } from "@/features/quantum/components/CircuitDiagram";
 import { ProbabilityBars } from "@/features/quantum/components/ProbabilityBars";
 import { QuantumStateEvolution } from "@/features/quantum/components/QuantumStateEvolution";
 import type {
@@ -11,6 +14,8 @@ import type {
 interface SimulationResultsProps {
   experiment: QuantumExperiment;
   result: QuantumSimulationResult;
+  isRunning?: boolean;
+  visualMode?: CircuitVisualMode;
 }
 
 function resolveVariant(
@@ -85,60 +90,91 @@ function EntanglementInterpretation() {
   );
 }
 
+const BELL_HIGHLIGHT: ReadonlySet<string> = new Set(["00", "11"]);
+
 export function SimulationResults({
   experiment,
   result,
+  isRunning = false,
+  visualMode = "advanced",
 }: SimulationResultsProps) {
   const variant = resolveVariant(experiment.id, result);
   const initialState = result.initial_state ?? "0";
+  const highlight = variant === "bell" ? BELL_HIGHLIGHT : undefined;
 
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-2">
         <SectionTitle>Circuit</SectionTitle>
-        <CircuitDiagram variant={variant} initialState={initialState} />
+        <QuantumCircuitCanvas
+          variant={variant}
+          initialState={initialState}
+          isRunning={isRunning}
+          visualMode={visualMode}
+        />
       </section>
 
       <section className="flex flex-col gap-2">
         <SectionTitle>Quantum state evolution</SectionTitle>
-        <QuantumStateEvolution
-          experimentId={experiment.id}
-          initialState={initialState}
-        />
+        {visualMode === "simple" ? (
+          <QuantumStateEvolution
+            experimentId={experiment.id}
+            initialState={initialState}
+          />
+        ) : (
+          <VerticalQuantumEvolutionTimeline
+            experimentId={experiment.id}
+            initialState={initialState}
+          />
+        )}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="flex flex-col gap-3">
-          <SectionTitle>
-            {`Counts (this run, ${result.shots.toLocaleString()} shots)`}
-          </SectionTitle>
-          <dl className="grid grid-cols-2 gap-3 text-sm">
-            {Object.keys(result.counts)
-              .sort()
-              .map((key) => (
-                <div
-                  key={key}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900"
-                >
-                  <dt className="text-slate-500 dark:text-slate-400">
-                    <QuantumFormula expression={`\\lvert ${key}\\rangle`} />
-                  </dt>
-                  <dd className="font-mono text-base text-slate-900 dark:text-slate-100">
-                    {(result.counts[key] ?? 0).toLocaleString()}
-                  </dd>
-                </div>
-              ))}
-          </dl>
-        </div>
+      {visualMode === "simple" ? (
+        <section className="grid gap-6 lg:grid-cols-2">
+          <div className="flex flex-col gap-3">
+            <SectionTitle>
+              {`Counts (this run, ${result.shots.toLocaleString()} shots)`}
+            </SectionTitle>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              {Object.keys(result.counts)
+                .sort()
+                .map((key) => (
+                  <div
+                    key={key}
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-900"
+                  >
+                    <dt className="text-slate-500 dark:text-slate-400">
+                      <QuantumFormula expression={`\\lvert ${key}\\rangle`} />
+                    </dt>
+                    <dd className="font-mono text-base text-slate-900 dark:text-slate-100">
+                      {(result.counts[key] ?? 0).toLocaleString()}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          </div>
 
-        <div className="flex flex-col gap-3">
-          <SectionTitle>Probabilities (counts / shots)</SectionTitle>
-          <ProbabilityBars
+          <div className="flex flex-col gap-3">
+            <SectionTitle>Probabilities (counts / shots)</SectionTitle>
+            <ProbabilityBars
+              probabilities={result.probabilities}
+              counts={result.counts}
+            />
+          </div>
+        </section>
+      ) : (
+        <section className="flex flex-col gap-3">
+          <SectionTitle>
+            {`Measurement distribution (${result.shots.toLocaleString()} shots)`}
+          </SectionTitle>
+          <QuantumDistributionChart
             probabilities={result.probabilities}
             counts={result.counts}
+            shots={result.shots}
+            highlight={highlight}
           />
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="flex flex-col gap-2">
         <SectionTitle>Experimental interpretation</SectionTitle>

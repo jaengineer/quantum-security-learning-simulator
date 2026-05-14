@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { QuantumExplanationCard } from "@/components/quantum/QuantumExplanationCard";
 import { QuantumGateCard } from "@/components/quantum/QuantumGateCard";
 import { EXPERIMENT_CONTENT } from "@/features/quantum/data/experimentContent";
@@ -7,6 +9,7 @@ import type { QuantumExperiment } from "@/features/quantum/types";
 
 interface ExperimentBriefingProps {
   experiment: QuantumExperiment;
+  physicalVisualization?: ReactNode;
 }
 
 function SectionLabel({ children }: { children: string }) {
@@ -17,7 +20,10 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-export function ExperimentBriefing({ experiment }: ExperimentBriefingProps) {
+export function ExperimentBriefing({
+  experiment,
+  physicalVisualization,
+}: ExperimentBriefingProps) {
   const content = EXPERIMENT_CONTENT[experiment.id];
   const hasGates = content.gates.length > 0;
   const isComingSoon = experiment.status === "coming-soon";
@@ -59,6 +65,13 @@ export function ExperimentBriefing({ experiment }: ExperimentBriefingProps) {
           formula={content.physicalInterpretation.keyFormula}
         />
       </div>
+
+      {physicalVisualization ? (
+        <div className="flex flex-col gap-2">
+          <SectionLabel>Physical visualization</SectionLabel>
+          {physicalVisualization}
+        </div>
+      ) : null}
 
       {isComingSoon ? (
         <p className="text-xs italic text-slate-500 dark:text-slate-400">

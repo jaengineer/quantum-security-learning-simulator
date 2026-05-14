@@ -1,8 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { BlochSphere } from "@/components/quantum/bloch/BlochSphere";
+import type { SingleQubitGate } from "@/components/quantum/bloch/blochMath";
 import { Card } from "@/components/ui/Card";
 import { ExperimentBriefing } from "@/features/quantum/components/ExperimentBriefing";
 import { ExperimentConfiguration } from "@/features/quantum/components/ExperimentConfiguration";
@@ -39,6 +41,29 @@ export function SimulationWorkspace({
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const blochVisualization = useMemo(() => {
+    if (experiment.id !== "superposition") return null;
+    const initialState: "0" | "1" =
+      result?.initial_state === "1" ? "1" : "0";
+    const appliedGates: ReadonlyArray<SingleQubitGate> =
+      result && result.circuit === "hadamard"
+        ? initialState === "1"
+          ? (["X", "H"] as const)
+          : (["H"] as const)
+        : [];
+    const caption = result
+      ? "Hadamard rotates the state vector from a pole to the equator. Drag to rotate the view."
+      : "|0\u27E9 sits at the north pole. Run the simulation to animate the rotation produced by H. Drag to rotate the view.";
+    return (
+      <BlochSphere
+        initialState={initialState}
+        appliedGates={appliedGates}
+        animate={Boolean(result)}
+        caption={caption}
+      />
+    );
+  }, [experiment.id, result]);
+
   return (
     <section className="flex flex-col gap-6">
       <nav className="flex items-center justify-between gap-3">
@@ -69,7 +94,10 @@ export function SimulationWorkspace({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <aside className="flex flex-col gap-3 lg:sticky lg:top-6 lg:self-start">
-          <ExperimentBriefing experiment={experiment} />
+          <ExperimentBriefing
+            experiment={experiment}
+            physicalVisualization={blochVisualization}
+          />
         </aside>
 
         <div className="flex flex-col gap-5">
@@ -149,7 +177,11 @@ export function SimulationWorkspace({
                       : ""
                   }.`}
                 >
-                  <SimulationResults experiment={experiment} result={result} />
+                  <SimulationResults
+                    experiment={experiment}
+                    result={result}
+                    isRunning={isLoading}
+                  />
                 </Card>
               </motion.div>
             ) : null}
