@@ -53,7 +53,7 @@ export function SimulationWorkspace({
         : [];
     const caption = result
       ? "Hadamard rotates the state vector from a pole to the equator. Drag to rotate the view."
-      : "|0\u27E9 sits at the north pole. Run the simulation to animate the rotation produced by H. Drag to rotate the view.";
+      : "|0⟩ sits at the north pole. Run the simulation to animate the rotation produced by H. Drag to rotate the view.";
     return (
       <BlochSphere
         initialState={initialState}
@@ -167,13 +167,13 @@ export function SimulationWorkspace({
               >
                 <Card
                   title="Experimental results"
-                  description={`Circuit: ${result.circuit} \u2014 ${result.shots.toLocaleString()} shots${
+                  description={`Circuit: ${result.circuit} — ${result.shots.toLocaleString()} shots${
                     result.simulator
-                      ? ` \u2014 simulator: ${result.simulator}`
+                      ? ` — simulator: ${result.simulator}`
                       : ""
                   }${
                     typeof result.execution_time_ms === "number"
-                      ? ` \u2014 ${result.execution_time_ms.toFixed(2)} ms`
+                      ? ` — ${result.execution_time_ms.toFixed(2)} ms`
                       : ""
                   }.`}
                 >

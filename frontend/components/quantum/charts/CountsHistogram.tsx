@@ -36,7 +36,7 @@ export function CountsHistogram({
   const { keys, values, labels } = useMemo(() => {
     const ks = Object.keys(counts).sort();
     const vs = ks.map((key) => counts[key] ?? 0);
-    const ls = ks.map((key) => `|${key}\u27E9`);
+    const ls = ks.map((key) => `|${key}⟩`);
     return { keys: ks, values: vs, labels: ls };
   }, [counts]);
 

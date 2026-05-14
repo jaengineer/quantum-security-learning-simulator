@@ -91,7 +91,7 @@ export function VerticalTimelineStep({
           {stepNumber}
         </span>
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
-          {`Step ${stepNumber} \u2014 ${label}`}
+          {`Step ${stepNumber} — ${label}`}
         </span>
       </div>
 

@@ -49,7 +49,7 @@ export function buildSuperpositionSteps(
       id: "initial",
       label: "Initial state",
       expression: `\\lvert ${normalized}\\rangle`,
-      description: `The qubit starts in the basis state |${normalized}\u27E9.`,
+      description: `The qubit starts in the basis state |${normalized}⟩.`,
       kind: "initial",
     },
     {
@@ -57,7 +57,7 @@ export function buildSuperpositionSteps(
       label: "Superposition state",
       expression: `\\tfrac{1}{\\sqrt{2}}\\bigl(\\lvert 0\\rangle ${sign} \\lvert 1\\rangle\\bigr)`,
       description:
-        "Hadamard creates an equal superposition between |0\u27E9 and |1\u27E9.",
+        "Hadamard creates an equal superposition between |0⟩ and |1⟩.",
       operationFromPrevious: "Apply H",
       kind: "state",
     },
@@ -79,7 +79,7 @@ export function buildEntanglementSteps(): EvolutionStep[] {
       id: "initial",
       label: "Initial state",
       expression: "\\lvert 00\\rangle",
-      description: "Both qubits start in the basis state |0\u27E9.",
+      description: "Both qubits start in the basis state |0⟩.",
       kind: "initial",
     },
     {
@@ -88,7 +88,7 @@ export function buildEntanglementSteps(): EvolutionStep[] {
       expression:
         "\\tfrac{1}{\\sqrt{2}}\\bigl(\\lvert 00\\rangle + \\lvert 10\\rangle\\bigr)",
       description:
-        "Applying Hadamard on q0 creates a superposition between |00\u27E9 and |10\u27E9.",
+        "Applying Hadamard on q0 creates a superposition between |00⟩ and |10⟩.",
       operationFromPrevious: "Apply H on q0",
       kind: "state",
     },
@@ -107,7 +107,7 @@ export function buildEntanglementSteps(): EvolutionStep[] {
       label: "Correlated outcomes",
       expression: "\\lvert 00\\rangle \\;\\text{or}\\; \\lvert 11\\rangle",
       description:
-        "Measurement collapses the state to either |00\u27E9 or |11\u27E9. Outcomes are perfectly correlated.",
+        "Measurement collapses the state to either |00⟩ or |11⟩. Outcomes are perfectly correlated.",
       operationFromPrevious: "Measurement",
       kind: "measurement",
     },
