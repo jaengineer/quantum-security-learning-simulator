@@ -22,7 +22,16 @@
 
 import { InlineMath, BlockMath } from "react-katex";
 
-export type QuantumFormulaSize = "sm" | "md" | "lg";
+/**
+ * ``sm``/``md``/``lg`` inject an explicit Tailwind ``text-*`` class on the
+ * wrapper so KaTeX (whose layout is in em units) scales accordingly.
+ *
+ * ``inherit`` skips that injection so the formula adopts the parent's
+ * ``font-size`` via CSS inheritance. Use it when the caller wants
+ * responsive sizing (e.g. ``text-xs sm:text-sm``) on the surrounding
+ * element without having to fight specificity against ``SIZE_CLASS``.
+ */
+export type QuantumFormulaSize = "sm" | "md" | "lg" | "inherit";
 
 export interface QuantumFormulaProps {
   expression: string;
@@ -33,7 +42,7 @@ export interface QuantumFormulaProps {
   compact?: boolean;
 }
 
-const SIZE_CLASS: Record<QuantumFormulaSize, string> = {
+const SIZE_CLASS: Record<Exclude<QuantumFormulaSize, "inherit">, string> = {
   sm: "text-xs",
   md: "text-sm",
   lg: "text-base",
@@ -47,7 +56,7 @@ export function QuantumFormula({
   size = "md",
   compact = false,
 }: QuantumFormulaProps) {
-  const sizeClass = SIZE_CLASS[size];
+  const sizeClass = size === "inherit" ? "" : SIZE_CLASS[size];
 
   if (displayMode === "block") {
     return (

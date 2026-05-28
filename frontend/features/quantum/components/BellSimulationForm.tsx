@@ -128,13 +128,18 @@ export function BellSimulationForm({
                 </span>
                 <span
                   className={[
-                    "text-[12px]",
+                    "block w-full overflow-x-auto whitespace-nowrap text-center quantum-thin-scroll",
+                    "text-xs sm:text-sm",
                     isSelected
                       ? "text-white/80 dark:text-slate-900/70"
                       : "text-slate-500 dark:text-slate-400",
                   ].join(" ")}
                 >
-                  <QuantumFormula expression={choice.formulaExpression} />
+                  <QuantumFormula
+                    expression={choice.formulaExpression}
+                    size="inherit"
+                    className="whitespace-nowrap"
+                  />
                 </span>
               </label>
             );

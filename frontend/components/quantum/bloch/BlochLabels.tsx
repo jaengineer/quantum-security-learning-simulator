@@ -7,14 +7,22 @@
  *
  * Each label is wrapped in a ``LearnableTooltip`` so hovering / focusing the
  * pole reveals the corresponding bra-ket explanation with a deep link into
- * the Theory Lab. The HTML overlay re-enables pointer events on the label
- * itself (the previous ``pointerEvents: "none"`` is dropped); the surrounding
- * ``<Html>`` keeps the regular drei layout.
+ * the Theory Lab.
+ *
+ * Provider bridge: ``BlochLabels`` is mounted inside ``@react-three/fiber``'s
+ * ``<Canvas>``, which uses its own React reconciler. React Context from the
+ * outer DOM tree does NOT propagate across reconciler boundaries, so we
+ * **re-mount** ``LearnableTooltipProvider`` inside each ``<Html>`` portal.
+ * Each provider is independent (it only configures delay timings), so having
+ * one per pole has no side effects.
  */
 
 import { Html } from "@react-three/drei";
 
-import { LearnableTooltip } from "@/features/overlays/tooltip/LearnableTooltip";
+import {
+  LearnableTooltip,
+  LearnableTooltipProvider,
+} from "@/features/overlays/tooltip/LearnableTooltip";
 
 const LABEL_OFFSET = 1.18;
 
@@ -70,26 +78,28 @@ export function BlochLabels() {
           center
           distanceFactor={6}
         >
-          <LearnableTooltip
-            title={label.title}
-            description={label.description}
-            latex={label.latex}
-            conceptId={label.conceptId}
-            side="top"
-          >
-            <button
-              type="button"
-              aria-label={`${label.text} — ${label.title}`}
-              className={[
-                "select-none rounded-md border px-1.5 py-0.5 font-mono text-[11px]",
-                "border-slate-200 bg-white/90 text-slate-700 shadow-sm",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400",
-                "dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-100",
-              ].join(" ")}
+          <LearnableTooltipProvider>
+            <LearnableTooltip
+              title={label.title}
+              description={label.description}
+              latex={label.latex}
+              conceptId={label.conceptId}
+              side="top"
             >
-              {label.text}
-            </button>
-          </LearnableTooltip>
+              <button
+                type="button"
+                aria-label={`${label.text} — ${label.title}`}
+                className={[
+                  "select-none rounded-md border px-1.5 py-0.5 font-mono text-[11px]",
+                  "border-slate-200 bg-white/90 text-slate-700 shadow-sm",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400",
+                  "dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-100",
+                ].join(" ")}
+              >
+                {label.text}
+              </button>
+            </LearnableTooltip>
+          </LearnableTooltipProvider>
         </Html>
       ))}
     </group>
