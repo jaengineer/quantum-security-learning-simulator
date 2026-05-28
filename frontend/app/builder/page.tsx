@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 
+import { GlossaryFab } from "@/features/overlays/glossary/GlossaryFab";
+import { LearnableTooltipProvider } from "@/features/overlays/tooltip/LearnableTooltip";
 import { QuantumCircuitBuilder } from "@/features/quantum/builder/components/QuantumCircuitBuilder";
 
 export default function BuilderPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14">
+    <LearnableTooltipProvider>
+      <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14">
       <header className="flex flex-col gap-3">
         <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
           Interactive tool
@@ -41,5 +44,8 @@ export default function BuilderPage() {
         on the roadmap.
       </footer>
     </main>
+
+      <GlossaryFab />
+    </LearnableTooltipProvider>
   );
 }
