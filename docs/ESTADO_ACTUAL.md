@@ -708,7 +708,7 @@ npm run dev
 
 | Fase | Descripción | Estado |
 |---|---|---|
-| 6 | Overlays educativos (tooltips Radix, glosario, hint sobre cada gate) | Pendiente |
+| 6 | Overlays educativos (tooltips Radix, glosario, hint sobre cada gate) | Hecha (2026-05-27) |
 | 7 | Comparación ideal vs ruidoso (`NoiseModel` de qiskit-aer) | Pendiente, requiere extensión de contrato backend |
 | 8 | UX polish (loaders, transiciones de pantalla, responsive fino) | Parcial (loaders ya están) |
 | 9 | Documentación + arquitectura final en `README.md` | Pendiente |
@@ -996,7 +996,35 @@ manteniendo intacto `visualMode="simple"` y la frontera HTTP.
   `quantum-theme.ts` con tokens TypeScript reflejados. Soporte
   light/dark vía `useSyncExternalStore`.
 
-### 17.4. Documentación (2026-05-14, pendiente de commit)
+### 17.4. Fase 6 — Overlays educativos (2026-05-27)
+
+Capa transversal que conecta el simulador con el Theory Lab y sirve de
+puente teoría ↔ práctica.
+
+- **`@radix-ui/react-tooltip` + `@radix-ui/react-dialog`** instalados como
+  primitivas accesibles (focus-trap, ESC, `aria-describedby`).
+- **`features/overlays/tooltip/LearnableTooltip.tsx`** — wrapper Radix con
+  título, descripción, mini-fórmula KaTeX opcional y CTA condicional
+  "Open in Theory Lab" (sólo cuando `conceptId` está presente). Usa
+  `asChild` para no romper los listeners de `dnd-kit` ni los refs del
+  trigger.
+- **`features/overlays/glossary/{entries,gateMap}.ts`** — registro
+  canónico (gates, kets, operadores, primitivas visuales) y mapping
+  `GateId -> glossaryEntryId -> theoryConceptId`. Las rutas
+  `/theory/<id>` se construyen aquí; ningún componente las hardcodea.
+- **`GlossaryFab` + `GlossaryDrawer`** — botón flotante con posicionado
+  `safe-area-inset` (`bottom-[calc(1.5rem+env(safe-area-inset-bottom))]`)
+  y label oculta en mobile (`hidden sm:inline`) para no tapar controles
+  importantes. Drawer Radix Dialog con búsqueda local y deep links al
+  Theory Lab.
+- **Anclajes**: `QuantumGateBlock` (paleta + canvas), `BlochLabels`
+  (`|0⟩`, `|1⟩`, `|±⟩`), `QuantumCircuitLegend` (cada fila), tabs de
+  `QuantumDistributionChart`. En mobile la interacción degrada a focus;
+  el FAB actúa como fallback táctil.
+- **A11y**: las animaciones del tooltip y del drawer están gateadas con
+  `motion-safe:` para respetar `prefers-reduced-motion`.
+
+### 17.5. Documentación (2026-05-14, pendiente de commit)
 
 - **v1**: [`docs/ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md) inicial. 15
   secciones: visión, stack, arquitectura backend/frontend, flujo,

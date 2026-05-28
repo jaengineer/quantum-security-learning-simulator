@@ -4,16 +4,22 @@
  * Collapsible legend that maps every symbol in the visual circuit diagram to
  * its textbook meaning. Rendered under the canvas so the user can decode the
  * diagram without leaving the workspace.
+ *
+ * Every entry now exposes an optional ``conceptId``; when present, the
+ * description is wrapped in a ``LearnableTooltip`` so hovering / focusing the
+ * row reveals a "Open in Theory Lab" deep link.
  */
 
 import type { ReactNode } from "react";
 
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
+import { LearnableTooltip } from "@/features/overlays/tooltip/LearnableTooltip";
 
 interface LegendItem {
   symbol: ReactNode;
   name: string;
   description: string;
+  conceptId?: string;
 }
 
 function HSymbol() {
@@ -81,26 +87,31 @@ const LEGEND: ReadonlyArray<LegendItem> = [
     symbol: <HSymbol />,
     name: "Hadamard gate",
     description: "Creates an equal superposition from a basis state.",
+    conceptId: "unitary-matrices",
   },
   {
     symbol: <XSymbol />,
     name: "Pauli-X gate",
     description: "Bit-flip: maps |0⟩ to |1⟩ and vice versa.",
+    conceptId: "hermitian-matrices",
   },
   {
     symbol: <ControlSymbol />,
     name: "Control qubit",
     description: "Triggers the conditional gate on the connected target wire.",
+    conceptId: "quantum-entanglement",
   },
   {
     symbol: <TargetSymbol />,
     name: "CNOT target (⊕)",
     description: "Receives an X flip when the control qubit is |1⟩.",
+    conceptId: "quantum-entanglement",
   },
   {
     symbol: <MeasurementSymbol />,
     name: "Measurement",
     description: "Collapses the qubit into a classical bit (basis-state outcome).",
+    conceptId: "density-matrix",
   },
 ];
 
@@ -123,22 +134,41 @@ export function QuantumCircuitLegend() {
         Legend
       </summary>
       <dl className="mt-3 grid gap-2 sm:grid-cols-2">
-        {LEGEND.map((item) => (
-          <div
-            key={item.name}
-            className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/60 px-2.5 py-2 text-xs dark:border-slate-800 dark:bg-slate-900/40"
-          >
-            <dt className="mt-0.5 shrink-0">{item.symbol}</dt>
-            <dd className="flex flex-col gap-0.5">
-              <span className="font-medium text-slate-800 dark:text-slate-100">
-                {item.name}
-              </span>
-              <span className="text-slate-500 dark:text-slate-400">
-                {item.description}
-              </span>
-            </dd>
-          </div>
-        ))}
+        {LEGEND.map((item) => {
+          const row = (
+            <div className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/60 px-2.5 py-2 text-xs dark:border-slate-800 dark:bg-slate-900/40">
+              <dt className="mt-0.5 shrink-0">{item.symbol}</dt>
+              <dd className="flex flex-col gap-0.5">
+                <span className="font-medium text-slate-800 dark:text-slate-100">
+                  {item.name}
+                </span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {item.description}
+                </span>
+              </dd>
+            </div>
+          );
+
+          return item.conceptId ? (
+            <LearnableTooltip
+              key={item.name}
+              title={item.name}
+              description={item.description}
+              conceptId={item.conceptId}
+              side="top"
+            >
+              <button
+                type="button"
+                aria-label={`${item.name} — open glossary entry`}
+                className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 rounded-md"
+              >
+                {row}
+              </button>
+            </LearnableTooltip>
+          ) : (
+            <div key={item.name}>{row}</div>
+          );
+        })}
       </dl>
       <p className="mt-3 text-[11px] text-slate-500 dark:text-slate-400">
         Bell state{" "}

@@ -22,6 +22,8 @@ import { useDraggable } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { getGlossaryEntryForGate } from "@/features/overlays/glossary/gateMap";
+import { LearnableTooltip } from "@/features/overlays/tooltip/LearnableTooltip";
 import { GATE_PALETTE_STYLES } from "@/features/quantum/builder/components/gatePaletteStyles";
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import type {
@@ -61,32 +63,52 @@ function PaletteBlock({ gateId, theta }: PaletteBlockProps) {
     id: `palette-${gateId}`,
     data: { source: "palette", gateId, theta },
   });
+  const entry = getGlossaryEntryForGate(gateId);
 
+  // Tooltip wrapping strategy: the tooltip trigger targets a neutral wrapper
+  // ``<span>`` and the draggable ``<button>`` lives untouched inside. This
+  // keeps dnd-kit's ref/listeners on the *original* button (no Radix Slot
+  // composition cloning that element), which:
+  //   - guarantees drag-and-drop behaviour stays byte-identical to before;
+  //   - prevents the dnd-kit hydration counter (``DndDescribedBy-N``) from
+  //     drifting because of an extra Slot render layer.
+  // On touch devices Radix opens on focus only; long-press would clash with
+  // dnd-kit's drag activation, so users get the same content via the
+  // GlossaryFab fallback.
   return (
-    <button
-      type="button"
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      title={gate.longName}
-      aria-label={`Drag ${gate.longName} gate onto the circuit`}
-      className={[
-        "group relative flex h-16 w-16 select-none flex-col items-center justify-center gap-0.5 rounded-xl border text-center transition",
-        "cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2",
-        style.block,
-        style.ring,
-        isDragging ? "opacity-50" : "hover:scale-[1.04]",
-      ].join(" ")}
+    <LearnableTooltip
+      title={entry?.term ?? gate.longName}
+      description={entry?.summary ?? gate.description}
+      latex={entry?.latex ?? gate.latex}
+      conceptId={entry?.theoryConceptId}
+      side="bottom"
     >
-      <span className={["text-base font-semibold", style.label].join(" ")}>
-        {gate.label}
+      <span className="inline-block">
+        <button
+          type="button"
+          ref={setNodeRef}
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag ${gate.longName} gate onto the circuit`}
+          className={[
+            "group relative flex h-16 w-16 select-none flex-col items-center justify-center gap-0.5 rounded-xl border text-center transition",
+            "cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2",
+            style.block,
+            style.ring,
+            isDragging ? "opacity-50" : "hover:scale-[1.04]",
+          ].join(" ")}
+        >
+          <span className={["text-base font-semibold", style.label].join(" ")}>
+            {gate.label}
+          </span>
+          {gate.parametric ? (
+            <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              {typeof theta === "number" ? formatTheta(theta) : "(θ)"}
+            </span>
+          ) : null}
+        </button>
       </span>
-      {gate.parametric ? (
-        <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">
-          {typeof theta === "number" ? formatTheta(theta) : "(θ)"}
-        </span>
-      ) : null}
-    </button>
+    </LearnableTooltip>
   );
 }
 
@@ -104,6 +126,7 @@ function CanvasBlock({ gate, onRemove }: CanvasBlockProps) {
     id: gate.uid,
     data: { source: "canvas", uid: gate.uid },
   });
+  const entry = getGlossaryEntryForGate(gate.id);
 
   const inlineStyle = {
     transform: CSS.Transform.toString(transform),
@@ -121,22 +144,35 @@ function CanvasBlock({ gate, onRemove }: CanvasBlockProps) {
         isDragging ? "z-10 opacity-80" : "",
       ].join(" ")}
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label={`Reorder ${def.longName} gate`}
-        className="flex h-full w-full cursor-grab flex-col items-center justify-center gap-0.5 rounded-xl active:cursor-grabbing focus:outline-none"
+      <LearnableTooltip
+        title={entry?.term ?? def.longName}
+        description={entry?.summary ?? def.description}
+        latex={entry?.latex ?? def.latex}
+        conceptId={entry?.theoryConceptId}
+        side="top"
       >
-        <span className={["text-base font-semibold", style.label].join(" ")}>
-          {def.label}
+        {/* Neutral span wrapper: see PaletteBlock for rationale. */}
+        <span className="inline-block h-full w-full">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            aria-label={`Reorder ${def.longName} gate`}
+            className="flex h-full w-full cursor-grab flex-col items-center justify-center gap-0.5 rounded-xl active:cursor-grabbing focus:outline-none"
+          >
+            <span
+              className={["text-base font-semibold", style.label].join(" ")}
+            >
+              {def.label}
+            </span>
+            {gate.params ? (
+              <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                {formatTheta(gate.params.theta)}
+              </span>
+            ) : null}
+          </button>
         </span>
-        {gate.params ? (
-          <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            {formatTheta(gate.params.theta)}
-          </span>
-        ) : null}
-      </button>
+      </LearnableTooltip>
       <button
         type="button"
         onClick={() => onRemove(gate.uid)}
