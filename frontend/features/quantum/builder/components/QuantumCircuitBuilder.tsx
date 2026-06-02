@@ -35,7 +35,8 @@ import {
 } from "@dnd-kit/sortable";
 import { useCallback, useMemo, useState } from "react";
 
-import { BlochSphereViewer } from "@/features/quantum/builder/components/BlochSphereViewer";
+import { BlochSphere3D } from "@/components/quantum/bloch/BlochSphere3D";
+import type { TrajectoryPoint } from "@/components/quantum/bloch/BlochSphere3D";
 import { CircuitCanvas } from "@/features/quantum/builder/components/CircuitCanvas";
 import { GatePalette } from "@/features/quantum/builder/components/GatePalette";
 import { SimulationResultPanel } from "@/features/quantum/builder/components/SimulationResultPanel";
@@ -78,6 +79,27 @@ export function QuantumCircuitBuilder() {
   );
 
   const result = useMemo(() => simulate(KET_0, gates), [gates]);
+
+  // Path taken by the Bloch vector through the circuit, starting from |0⟩.
+  // Each entry carries the gate that produced it plus a step heading so a
+  // future hover/click handler on the 3D trajectory can surface tooltips.
+  const trajectory = useMemo<TrajectoryPoint[]>(() => {
+    const start: TrajectoryPoint = {
+      x: 0,
+      y: 0,
+      z: 1,
+      stateLabel: "|0⟩",
+      stepLabel: "start",
+    };
+    const stepPoints: TrajectoryPoint[] = result.steps.map((step) => ({
+      x: step.blochAfter.x,
+      y: step.blochAfter.y,
+      z: step.blochAfter.z,
+      gateId: step.gate.id,
+      stepLabel: `Step ${step.index + 1}`,
+    }));
+    return [start, ...stepPoints];
+  }, [result.steps]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -183,20 +205,26 @@ export function QuantumCircuitBuilder() {
         </div>
 
         <aside className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/55 lg:sticky lg:top-6 lg:self-start">
-          <header className="flex flex-col gap-1">
+          <header className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
               Bloch sphere
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Geometric view of the current single-qubit state.
-            </p>
           </header>
-          <BlochSphereViewer
-            bloch={result.finalBloch}
+          <BlochSphere3D
+            x={result.finalBloch.x}
+            y={result.finalBloch.y}
+            z={result.finalBloch.z}
+            trajectory={trajectory}
+            showTrajectory={!isEmpty}
+            showLabels
+            showControls
+            expandable
+            viewMode="compact"
+            height={520}
             caption={
               isEmpty
-                ? "|0⟩ sits at the north pole."
-                : "Vector animates as you add or reorder gates."
+                ? "|0⟩ sits at the north pole. Drag to rotate; press Expand for a focused view."
+                : "Drag to rotate. The trail shows how each gate moved the state."
             }
           />
         </aside>

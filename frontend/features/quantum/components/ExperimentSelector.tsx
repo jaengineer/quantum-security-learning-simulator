@@ -76,7 +76,7 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
               Study the underlying theory
             </h2>
             <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-              A curated reference for linear algebra and quantum information:
+              A curated reference for quantum information:
               formal definitions, intuitive explanations, worked examples and
               exam-style questions. Available in English and Spanish.
             </p>
