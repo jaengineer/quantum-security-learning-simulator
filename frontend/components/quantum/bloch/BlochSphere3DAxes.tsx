@@ -190,7 +190,7 @@ export function BlochSphere3DAxes() {
       >
         <span
           className={AXIS_LABEL_CLASSNAME}
-          style={{ transform: "translate(-1px, 1px)" }}
+          style={{ transform: "translate(-2px, 2px)" }}
         >
           x
         </span>
@@ -202,7 +202,7 @@ export function BlochSphere3DAxes() {
       >
         <span
           className={AXIS_LABEL_CLASSNAME}
-          style={{ transform: "translateX(1px)" }}
+          style={{ transform: "translateX(2px)" }}
         >
           y
         </span>
@@ -214,7 +214,7 @@ export function BlochSphere3DAxes() {
       >
         <span
           className={AXIS_LABEL_CLASSNAME}
-          style={{ transform: "translateY(-1px)" }}
+          style={{ transform: "translateY(-2px)" }}
         >
           z
         </span>

@@ -46,7 +46,7 @@ const POLE_COLOR_COMPUTATIONAL = QUANTUM_COLORS.quantumCyan;
 const POLE_COLOR_HADAMARD = QUANTUM_COLORS.quantumCyan;
 const POLE_COLOR_CIRCULAR = QUANTUM_COLORS.quantumViolet;
 
-const DOT_RADIUS = 0.055;
+const DOT_RADIUS = 0.045;
 
 /**
  * Radial distance at which the colored basis dots are anchored. Fixed at
@@ -254,9 +254,9 @@ export function BlochLabels({
           {/*
             Small colored sphere anchored ON the sphere surface (DOT_OFFSET).
             Cyan for the Z/X "real" bases, violet for the Y "imaginary"
-            basis. Radius (0.055) stays well below the hero state-vector
-            tip (0.080) so the basis dots never compete with the
-            current-state marker.
+            basis. Radius (0.045) stays well below the hero state-vector
+            tip so the basis dots never compete with the current-state
+            marker.
           */}
           <mesh position={label.dotPosition}>
             <sphereGeometry args={[DOT_RADIUS, 14, 14]} />
