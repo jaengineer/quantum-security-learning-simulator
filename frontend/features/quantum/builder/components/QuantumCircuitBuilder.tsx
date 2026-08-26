@@ -49,11 +49,12 @@ import type {
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import { simulate } from "@/features/quantum/builder/math/quantum-simulator";
 import type {
+  BuilderGateInstance,
+  BuilderQubitCount,
+  BuilderQubitIndex,
   GateId,
-  GateInstance,
-  QubitCount,
-  QubitIndex,
 } from "@/features/quantum/builder/types";
+import { isBuilderQubitIndex } from "@/features/quantum/builder/types";
 
 function newUid(): string {
   if (
@@ -67,19 +68,22 @@ function newUid(): string {
 
 interface GateInstanceOptions {
   theta?: number;
-  targetQubit?: QubitIndex;
-  controlQubit?: QubitIndex;
+  targetQubit?: BuilderQubitIndex;
+  controlQubit?: BuilderQubitIndex;
   targetQubits?: readonly [0, 1];
 }
 
-function makeInstance(id: GateId, options: GateInstanceOptions = {}): GateInstance {
+function makeInstance(
+  id: GateId,
+  options: GateInstanceOptions = {}
+): BuilderGateInstance {
   const def = getGate(id);
   const base = {
     id: newUid(),
     gateId: id,
     arity: def.arity,
     params: def.parametric ? { theta: options.theta ?? Math.PI / 2 } : undefined,
-  } satisfies GateInstance;
+  } satisfies BuilderGateInstance;
 
   if (def.arity === 2 && id === "SWAP") {
     return { ...base, targetQubits: [0, 1] };
@@ -96,7 +100,7 @@ function makeInstance(id: GateId, options: GateInstanceOptions = {}): GateInstan
   return { ...base, targetQubit: options.targetQubit ?? 0 };
 }
 
-function makeInstanceFromPreset(spec: BuilderPresetGate): GateInstance {
+function makeInstanceFromPreset(spec: BuilderPresetGate): BuilderGateInstance {
   return makeInstance(spec.gateId, {
     theta: spec.params?.theta,
     targetQubit: spec.targetQubit,
@@ -106,8 +110,8 @@ function makeInstanceFromPreset(spec: BuilderPresetGate): GateInstance {
 }
 
 export function QuantumCircuitBuilder() {
-  const [qubitCount, setQubitCount] = useState<QubitCount>(1);
-  const [gates, setGates] = useState<GateInstance[]>([]);
+  const [qubitCount, setQubitCount] = useState<BuilderQubitCount>(1);
+  const [gates, setGates] = useState<BuilderGateInstance[]>([]);
   // Stays around so we can flash the panel if the user clicks "Run" with
   // an empty circuit; not strictly required because the math already runs
   // on every change, but it is part of the requested UX.
@@ -162,7 +166,10 @@ export function QuantumCircuitBuilder() {
     if (activeSource === "palette") {
       const gateId = active.data.current?.gateId as GateId | undefined;
       const theta = active.data.current?.theta as number | undefined;
-      const targetQubit = over.data.current?.targetQubit as QubitIndex | undefined;
+      const rawTargetQubit = over.data.current?.targetQubit;
+      const targetQubit = isBuilderQubitIndex(rawTargetQubit)
+        ? rawTargetQubit
+        : undefined;
       if (!gateId) return;
       const def = getGate(gateId);
       if (def.arity === 2 && qubitCount !== 2) return;
@@ -226,7 +233,7 @@ export function QuantumCircuitBuilder() {
     setLastRunAt(Date.now());
   }, []);
 
-  const handleQubitCountChange = useCallback((next: QubitCount) => {
+  const handleQubitCountChange = useCallback((next: BuilderQubitCount) => {
     setQubitCount((current) => {
       if (current === next) return current;
       if (current === 2 && next === 1) {

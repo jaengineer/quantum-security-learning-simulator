@@ -20,6 +20,8 @@ import type {
   Probabilities,
   QuantumState,
   SingleQubitState,
+  ThreeQubitProbabilities,
+  ThreeQubitState,
   TwoQubitProbabilities,
   TwoQubitState,
 } from "@/features/quantum/builder/types";
@@ -35,6 +37,18 @@ export const KET_1: SingleQubitState = [c(0, 0), c(1, 0)] as const;
 /** Computational-basis state ``|00⟩ = [1, 0, 0, 0]``. */
 export const KET_00: TwoQubitState = [
   c(1, 0),
+  c(0, 0),
+  c(0, 0),
+  c(0, 0),
+] as const;
+
+/** Computational-basis state ``|000⟩ = [1, 0, ..., 0]``. */
+export const KET_000: ThreeQubitState = [
+  c(1, 0),
+  c(0, 0),
+  c(0, 0),
+  c(0, 0),
+  c(0, 0),
   c(0, 0),
   c(0, 0),
   c(0, 0),
@@ -68,6 +82,22 @@ export function twoQubitProbabilities(
   };
 }
 
+/** Measurement probabilities for basis states |000⟩ ... |111⟩. */
+export function threeQubitProbabilities(
+  state: ThreeQubitState
+): ThreeQubitProbabilities {
+  return {
+    p000: abs2(state[0]),
+    p001: abs2(state[1]),
+    p010: abs2(state[2]),
+    p011: abs2(state[3]),
+    p100: abs2(state[4]),
+    p101: abs2(state[5]),
+    p110: abs2(state[6]),
+    p111: abs2(state[7]),
+  };
+}
+
 export function concurrence(state: TwoQubitState): number {
   const [a, b, cAmp, d] = state;
   const determinant = sub(mul(a, d), mul(b, cAmp));
@@ -93,4 +123,10 @@ export function isSingleQubitState(
 
 export function isTwoQubitState(state: QuantumState): state is TwoQubitState {
   return state.length === 4;
+}
+
+export function isThreeQubitState(
+  state: QuantumState
+): state is ThreeQubitState {
+  return state.length === 8;
 }

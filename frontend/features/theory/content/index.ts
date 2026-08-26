@@ -20,10 +20,12 @@ import type {
 
 import { DENSITY_MATRIX } from "@/features/theory/content/density-matrix";
 import { DIRAC_NOTATION } from "@/features/theory/content/dirac-notation";
+import { FIDELITY } from "@/features/theory/content/fidelity";
 import { GRAM_SCHMIDT } from "@/features/theory/content/gram-schmidt";
 import { HERMITIAN_MATRICES } from "@/features/theory/content/hermitian-matrices";
 import { INNER_PRODUCT } from "@/features/theory/content/inner-product";
 import { QUANTUM_ENTANGLEMENT } from "@/features/theory/content/quantum-entanglement";
+import { QUANTUM_TELEPORTATION } from "@/features/theory/content/quantum-teleportation";
 import { REDUCED_DENSITY_MATRIX } from "@/features/theory/content/reduced-density-matrix";
 import { SPECTRAL_THEOREM } from "@/features/theory/content/spectral-theorem";
 import { UNITARY_MATRICES } from "@/features/theory/content/unitary-matrices";
@@ -38,6 +40,8 @@ export const THEORY_CONCEPTS_RAW: readonly TheoryConcept[] = [
   DENSITY_MATRIX,
   REDUCED_DENSITY_MATRIX,
   QUANTUM_ENTANGLEMENT,
+  QUANTUM_TELEPORTATION,
+  FIDELITY,
   GRAM_SCHMIDT,
   SPECTRAL_THEOREM,
   UNIT_ROOTS,

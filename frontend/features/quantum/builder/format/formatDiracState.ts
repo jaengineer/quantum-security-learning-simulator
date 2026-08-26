@@ -1,5 +1,5 @@
 /**
- * Symbolic LaTeX renderer for one- or two-qubit pure states.
+ * Symbolic LaTeX renderer for one-, two- or three-qubit pure states.
  *
  * Produces canonical forms such as:
  *
@@ -27,6 +27,16 @@ const TWO_QUBIT_KETS = [
   "\\lvert 01\\rangle",
   "\\lvert 10\\rangle",
   "\\lvert 11\\rangle",
+] as const;
+const THREE_QUBIT_KETS = [
+  "\\lvert 000\\rangle",
+  "\\lvert 001\\rangle",
+  "\\lvert 010\\rangle",
+  "\\lvert 011\\rangle",
+  "\\lvert 100\\rangle",
+  "\\lvert 101\\rangle",
+  "\\lvert 110\\rangle",
+  "\\lvert 111\\rangle",
 ] as const;
 
 function isZero(z: Complex): boolean {
@@ -89,7 +99,12 @@ function joinTerms(terms: string[]): string {
  * dropped.
  */
 export function formatDiracStateLatex(state: QuantumState): string {
-  const kets = state.length === 2 ? SINGLE_QUBIT_KETS : TWO_QUBIT_KETS;
+  const kets =
+    state.length === 2
+      ? SINGLE_QUBIT_KETS
+      : state.length === 4
+        ? TWO_QUBIT_KETS
+        : THREE_QUBIT_KETS;
   const terms = state
     .map((amp, index) => termFor(amp, kets[index]))
     .filter((term): term is string => term !== null);

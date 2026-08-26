@@ -27,8 +27,8 @@ import { LearnableTooltip } from "@/features/overlays/tooltip/LearnableTooltip";
 import { GATE_PALETTE_STYLES } from "@/features/quantum/builder/components/gatePaletteStyles";
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import type {
+  BuilderGateInstance,
   GateId,
-  GateInstance,
 } from "@/features/quantum/builder/types";
 
 interface PaletteBlockProps {
@@ -40,7 +40,7 @@ interface PaletteBlockProps {
 
 interface CanvasBlockProps {
   mode: "canvas";
-  gate: GateInstance;
+  gate: BuilderGateInstance;
   onRemove(uid: string): void;
 }
 

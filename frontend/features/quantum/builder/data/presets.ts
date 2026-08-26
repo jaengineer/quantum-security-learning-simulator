@@ -10,16 +10,16 @@
  */
 
 import type {
+  BuilderQubitCount,
+  BuilderQubitIndex,
   GateId,
   GateParams,
-  QubitCount,
-  QubitIndex,
 } from "@/features/quantum/builder/types";
 
 export interface BuilderPresetGate {
   gateId: GateId;
-  targetQubit?: QubitIndex;
-  controlQubit?: QubitIndex;
+  targetQubit?: BuilderQubitIndex;
+  controlQubit?: BuilderQubitIndex;
   targetQubits?: readonly [0, 1];
   params?: GateParams;
 }
@@ -28,7 +28,7 @@ export interface BuilderPreset {
   id: string;
   label: string;
   description: string;
-  qubitCount: QubitCount;
+  qubitCount: BuilderQubitCount;
   gates: readonly BuilderPresetGate[];
 }
 

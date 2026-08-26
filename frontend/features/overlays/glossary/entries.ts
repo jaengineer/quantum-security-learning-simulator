@@ -197,6 +197,23 @@ export const GLOSSARY_ENTRIES: readonly GlossaryEntry[] = [
     summary: "Projects the quantum state onto a basis vector and yields a classical outcome.",
     theoryConceptId: "density-matrix",
   },
+  {
+    id: "quantum-teleportation",
+    term: "Quantum teleportation",
+    summary:
+      "Transfers an unknown qubit state using shared entanglement, Alice's measurement and Bob's classical correction.",
+    latex:
+      "\\frac{1}{2}(|00\\rangle|\\psi\\rangle+|01\\rangle X|\\psi\\rangle+|10\\rangle Z|\\psi\\rangle+|11\\rangle XZ|\\psi\\rangle)",
+    theoryConceptId: "quantum-teleportation",
+  },
+  {
+    id: "fidelity",
+    term: "Fidelity",
+    summary:
+      "Pure-state overlap score F = |⟨ψ|φ⟩|²; 1 means the states match up to global phase.",
+    latex: "F(\\psi,\\phi)=|\\langle \\psi | \\phi \\rangle|^2",
+    theoryConceptId: "fidelity",
+  },
 
   // --- Visualisation primitives ------------------------------------------
   {

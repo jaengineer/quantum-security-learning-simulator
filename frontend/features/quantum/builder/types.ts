@@ -1,12 +1,10 @@
 /**
  * Shared TypeScript types for the Quantum Circuit Builder.
  *
- * The Builder is a fully client-side teaching tool. The MVP supports exactly
- * one or two qubits. In two-qubit mode, placed gate instances explicitly
- * store their q0/q1 target metadata; the UI never infers targets from visual
- * position after placement. The math is kept in pure modules under
- * ``./math`` and never imports React; the UI consumes these types through
- * props.
+ * The simulation core supports one, two or three qubits. The generic Builder
+ * UI remains intentionally constrained to one or two qubits; use
+ * ``BuilderQubitCount`` / ``BuilderQubitIndex`` at UI boundaries so q2 does
+ * not leak into the drag-and-drop Builder.
  */
 
 export interface Complex {
@@ -51,10 +49,36 @@ export type Mat4 = readonly [
  */
 export type SingleQubitState = readonly [Complex, Complex];
 export type TwoQubitState = readonly [Complex, Complex, Complex, Complex];
-export type QuantumState = SingleQubitState | TwoQubitState;
+export type ThreeQubitState = readonly [
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+];
+export type QuantumState = SingleQubitState | TwoQubitState | ThreeQubitState;
 
-export type QubitCount = 1 | 2;
-export type QubitIndex = 0 | 1;
+export type SimulatorQubitCount = 1 | 2 | 3;
+export type BuilderQubitCount = 1 | 2;
+export type QubitCount = SimulatorQubitCount;
+
+export type SimulatorQubitIndex = 0 | 1 | 2;
+export type BuilderQubitIndex = 0 | 1;
+export type QubitIndex = SimulatorQubitIndex;
+
+export const BUILDER_QUBIT_COUNTS = [1, 2] as const;
+export const BUILDER_QUBIT_INDICES = [0, 1] as const;
+
+export function isBuilderQubitCount(value: unknown): value is BuilderQubitCount {
+  return value === 1 || value === 2;
+}
+
+export function isBuilderQubitIndex(value: unknown): value is BuilderQubitIndex {
+  return value === 0 || value === 1;
+}
 
 export type GateArity = 1 | 2;
 
@@ -140,6 +164,14 @@ export interface CircuitGate {
 }
 
 export type GateInstance = CircuitGate;
+export type BuilderGateInstance = Omit<
+  GateInstance,
+  "targetQubit" | "controlQubit" | "targetQubits"
+> & {
+  targetQubit?: BuilderQubitIndex;
+  controlQubit?: BuilderQubitIndex;
+  targetQubits?: readonly [0, 1];
+};
 
 export interface BlochVector {
   x: number;
@@ -159,7 +191,21 @@ export interface TwoQubitProbabilities {
   p11: number;
 }
 
-export type MeasurementProbabilities = Probabilities | TwoQubitProbabilities;
+export interface ThreeQubitProbabilities {
+  p000: number;
+  p001: number;
+  p010: number;
+  p011: number;
+  p100: number;
+  p101: number;
+  p110: number;
+  p111: number;
+}
+
+export type MeasurementProbabilities =
+  | Probabilities
+  | TwoQubitProbabilities
+  | ThreeQubitProbabilities;
 
 export interface SimulationStep {
   /** Zero-based step index (matches array position). */
