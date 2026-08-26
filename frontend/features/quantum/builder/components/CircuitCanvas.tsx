@@ -22,9 +22,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { GATE_PALETTE_STYLES } from "@/features/quantum/builder/components/gatePaletteStyles";
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import type {
-  GateInstance,
-  QubitCount,
-  QubitIndex,
+  BuilderGateInstance,
+  BuilderQubitCount,
+  BuilderQubitIndex,
 } from "@/features/quantum/builder/types";
 
 const COLUMN_WIDTH = 88;
@@ -41,27 +41,29 @@ const CONTROL_DOT_SIZE = 20;
 const TWO_QUBIT_SYMBOL_SIZE = 36;
 
 interface CircuitCanvasProps {
-  qubitCount: QubitCount;
-  gates: GateInstance[];
+  qubitCount: BuilderQubitCount;
+  gates: BuilderGateInstance[];
   onRemoveGate(uid: string): void;
   onRunSimulation(): void;
-  onQubitCountChange(count: QubitCount): void;
+  onQubitCountChange(count: BuilderQubitCount): void;
   /** Whether the orchestrator wants to highlight the empty state (no gates). */
   isEmpty: boolean;
 }
 
-function wireCentersFor(qubitCount: QubitCount): { q0: number; q1?: number } {
+function wireCentersFor(
+  qubitCount: BuilderQubitCount
+): { q0: number; q1?: number } {
   if (qubitCount === 1) return { q0: Q0_CENTER_SINGLE };
   return { q0: Q0_CENTER_TWO, q1: Q0_CENTER_TWO + WIRE_GAP };
 }
 
-function gateThetaLabel(gate: GateInstance): string | null {
+function gateThetaLabel(gate: BuilderGateInstance): string | null {
   if (!gate.params) return null;
   return `${((gate.params.theta * 180) / Math.PI).toFixed(0)}°`;
 }
 
 function centerForQubit(
-  qubit: QubitIndex | undefined,
+  qubit: BuilderQubitIndex | undefined,
   q0Center: number,
   q1Center?: number
 ): number {
@@ -76,7 +78,7 @@ function WireDropZone({
   right,
 }: {
   id: string;
-  targetQubit: QubitIndex;
+  targetQubit: BuilderQubitIndex;
   top: number;
   left: number;
   right: number;
@@ -151,8 +153,8 @@ function CanvasGateColumn({
   q1Center,
   onRemove,
 }: {
-  gate: GateInstance;
-  qubitCount: QubitCount;
+  gate: BuilderGateInstance;
+  qubitCount: BuilderQubitCount;
   wireHeight: number;
   q0Center: number;
   q1Center?: number;
@@ -333,7 +335,9 @@ export function CircuitCanvas({
             <select
               value={qubitCount}
               onChange={(event) =>
-                onQubitCountChange(Number(event.target.value) as QubitCount)
+                onQubitCountChange(
+                  Number(event.target.value) as BuilderQubitCount
+                )
               }
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-slate-700 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             >

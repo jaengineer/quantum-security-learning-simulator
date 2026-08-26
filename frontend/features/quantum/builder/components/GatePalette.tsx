@@ -19,10 +19,10 @@ import {
   TWO_QUBIT_GATES,
 } from "@/features/quantum/builder/math/quantum-gates";
 import type { BuilderPreset } from "@/features/quantum/builder/data/presets";
-import type { QubitCount } from "@/features/quantum/builder/types";
+import type { BuilderQubitCount } from "@/features/quantum/builder/types";
 
 interface GatePaletteProps {
-  qubitCount: QubitCount;
+  qubitCount: BuilderQubitCount;
   onApplyPreset(preset: BuilderPreset): void;
   onClear(): void;
 }

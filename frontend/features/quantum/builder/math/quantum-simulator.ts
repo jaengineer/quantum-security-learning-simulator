@@ -24,7 +24,13 @@
  * infers the target from visual position.
  */
 
-import { ONE, ZERO, add, c, mul } from "@/features/quantum/builder/math/complex";
+import {
+  ONE,
+  ZERO,
+  add,
+  c,
+  mul,
+} from "@/features/quantum/builder/math/complex";
 import {
   cleanBloch,
   stateToBloch,
@@ -35,14 +41,17 @@ import {
 } from "@/features/quantum/builder/math/quantum-gates";
 import {
   KET_00,
+  KET_000,
   KET_0,
   applyMatrix,
   classifyEntanglement,
   concurrence,
   probabilities,
+  threeQubitProbabilities,
   twoQubitProbabilities,
 } from "@/features/quantum/builder/math/quantum-state";
 import type {
+  Complex,
   GateInstance,
   Mat2,
   Mat4,
@@ -52,6 +61,7 @@ import type {
   SingleQubitState,
   SimulationResult,
   SimulationStep,
+  ThreeQubitState,
   TwoQubitState,
 } from "@/features/quantum/builder/types";
 
@@ -105,39 +115,63 @@ function assertDistinctControlTarget(gate: GateInstance): {
   return { controlQubit, targetQubit };
 }
 
-function applySingleQubitGate(
-  state: TwoQubitState,
-  matrix: Mat2,
-  targetQubit: QubitIndex
-): TwoQubitState {
-  const [m00, m01, m10, m11] = matrix;
-  const [s00, s01, s10, s11] = state;
-  if (targetQubit === 1) {
-    return [
-      add(mul(m00, s00), mul(m01, s01)),
-      add(mul(m10, s00), mul(m11, s01)),
-      add(mul(m00, s10), mul(m01, s11)),
-      add(mul(m10, s10), mul(m11, s11)),
-    ] as const;
+function bitMaskFor(qubitCount: 2 | 3, qubit: QubitIndex): number {
+  if (qubit >= qubitCount) {
+    throw new Error(`q${qubit} is not available in a ${qubitCount}-qubit register`);
   }
-  return [
-    add(mul(m00, s00), mul(m01, s10)),
-    add(mul(m00, s01), mul(m01, s11)),
-    add(mul(m10, s00), mul(m11, s10)),
-    add(mul(m10, s01), mul(m11, s11)),
-  ] as const;
+  return 1 << (qubitCount - 1 - qubit);
+}
+
+function zeroRegister(length: number): Complex[] {
+  return Array.from({ length }, () => ZERO);
+}
+
+function applySingleQubitGate(
+  state: TwoQubitState | ThreeQubitState,
+  matrix: Mat2,
+  targetQubit: QubitIndex,
+  qubitCount: 2 | 3
+): TwoQubitState | ThreeQubitState {
+  const [m00, m01, m10, m11] = matrix;
+  const mask = bitMaskFor(qubitCount, targetQubit);
+  const next = zeroRegister(state.length);
+
+  for (let base = 0; base < state.length; base += 1) {
+    if ((base & mask) !== 0) continue;
+    const zeroIndex = base;
+    const oneIndex = base | mask;
+    const zeroAmp = state[zeroIndex];
+    const oneAmp = state[oneIndex];
+    next[zeroIndex] = add(mul(m00, zeroAmp), mul(m01, oneAmp));
+    next[oneIndex] = add(mul(m10, zeroAmp), mul(m11, oneAmp));
+  }
+
+  return next as unknown as TwoQubitState | ThreeQubitState;
+}
+
+function applyCnotGate(
+  state: TwoQubitState | ThreeQubitState,
+  gate: GateInstance,
+  qubitCount: 2 | 3
+): TwoQubitState | ThreeQubitState {
+  const { controlQubit, targetQubit } = assertDistinctControlTarget(gate);
+  const controlMask = bitMaskFor(qubitCount, controlQubit);
+  const targetMask = bitMaskFor(qubitCount, targetQubit);
+  const next = zeroRegister(state.length);
+
+  state.forEach((amp, index) => {
+    const destination = (index & controlMask) !== 0 ? index ^ targetMask : index;
+    next[destination] = add(next[destination], amp);
+  });
+
+  return next as unknown as TwoQubitState | ThreeQubitState;
 }
 
 function applyTwoQubitGate(state: TwoQubitState, gate: GateInstance): TwoQubitState {
   const [s00, s01, s10, s11] = state;
   switch (gate.gateId) {
-    case "CNOT": {
-      const { controlQubit, targetQubit } = assertDistinctControlTarget(gate);
-      if (controlQubit === 0 && targetQubit === 1) {
-        return [s00, s01, s11, s10] as const;
-      }
-      return [s00, s11, s10, s01] as const;
-    }
+    case "CNOT":
+      return applyCnotGate(state, gate, 2) as TwoQubitState;
     case "CZ":
       assertDistinctControlTarget(gate);
       return [s00, s01, s10, c(-s11.re, -s11.im)] as const;
@@ -292,8 +326,9 @@ function simulateTwoQubits(gates: readonly GateInstance[]): SimulationResult {
       stateAfter = applySingleQubitGate(
         stateBefore,
         matrix,
-        targetQubitFor(gate)
-      );
+        targetQubitFor(gate),
+        2
+      ) as TwoQubitState;
     } else {
       matrix = matrixForTwoQubitGate(gate);
       stateAfter = applyTwoQubitGate(stateBefore, gate);
@@ -325,6 +360,51 @@ function simulateTwoQubits(gates: readonly GateInstance[]): SimulationResult {
   };
 }
 
+function simulateThreeQubits(gates: readonly GateInstance[]): SimulationResult {
+  let state: ThreeQubitState = KET_000;
+  const steps: SimulationStep[] = [];
+
+  gates.forEach((gate, index) => {
+    const stateBefore = state;
+    let stateAfter: ThreeQubitState;
+    let matrix: Mat2 | Mat4 | undefined;
+
+    if (gate.arity === 1) {
+      const gateId = assertSingleQubitGate(gate);
+      matrix = matrixOf(gateId, gate.params);
+      stateAfter = applySingleQubitGate(
+        stateBefore,
+        matrix,
+        targetQubitFor(gate),
+        3
+      ) as ThreeQubitState;
+    } else if (gate.gateId === "CNOT") {
+      stateAfter = applyCnotGate(stateBefore, gate, 3) as ThreeQubitState;
+    } else {
+      throw new Error(`${gate.gateId} is not supported in 3-qubit mode`);
+    }
+
+    steps.push({
+      index,
+      gate,
+      matrix,
+      stateBefore,
+      stateAfter,
+      probAfter: threeQubitProbabilities(stateAfter),
+      narrative: narrativeFor(gate),
+    });
+    state = stateAfter;
+  });
+
+  return {
+    qubitCount: 3,
+    initialState: KET_000,
+    finalState: state,
+    steps,
+    finalProbabilities: threeQubitProbabilities(state),
+  };
+}
+
 /**
  * Run a circuit on an initial state and return both the final state and the
  * per-step trace. The trace is what powers the step-by-step explanation.
@@ -333,5 +413,7 @@ export function simulate(
   qubitCount: QubitCount = 1,
   gates: readonly GateInstance[] = []
 ): SimulationResult {
-  return qubitCount === 1 ? simulateSingleQubit(gates) : simulateTwoQubits(gates);
+  if (qubitCount === 1) return simulateSingleQubit(gates);
+  if (qubitCount === 2) return simulateTwoQubits(gates);
+  return simulateThreeQubits(gates);
 }

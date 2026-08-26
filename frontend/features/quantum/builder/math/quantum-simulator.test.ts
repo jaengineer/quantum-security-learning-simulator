@@ -28,12 +28,24 @@ function single(gateId: GateId, targetQubit: QubitIndex): GateInstance {
   return gate(gateId, { targetQubit });
 }
 
+function singleAny(gateId: GateId, targetQubit: 0 | 1 | 2): GateInstance {
+  return gate(gateId, { targetQubit } as Partial<GateInstance>);
+}
+
 function controlled(
   gateId: "CNOT" | "CZ",
   controlQubit: QubitIndex,
   targetQubit: QubitIndex
 ): GateInstance {
   return gate(gateId, { controlQubit, targetQubit });
+}
+
+function controlledAny(
+  gateId: "CNOT" | "CZ",
+  controlQubit: 0 | 1 | 2,
+  targetQubit: 0 | 1 | 2
+): GateInstance {
+  return gate(gateId, { controlQubit, targetQubit } as Partial<GateInstance>);
 }
 
 function swap(): GateInstance {
@@ -60,6 +72,16 @@ function assertTwoQubitState(
   actual: TwoQubitState,
   expected: TwoQubitState
 ) {
+  actual.forEach((amp, index) => {
+    assertComplexClose(amp, expected[index], `amplitude[${index}]`);
+  });
+}
+
+function assertStateArray(
+  actual: readonly { re: number; im: number }[],
+  expected: readonly { re: number; im: number }[]
+) {
+  assert.equal(actual.length, expected.length);
   actual.forEach((amp, index) => {
     assertComplexClose(amp, expected[index], `amplitude[${index}]`);
   });
@@ -156,6 +178,58 @@ test("SWAP exchanges |01> and |10>", () => {
     { re: 0, im: 0 },
     { re: 1, im: 0 },
     { re: 0, im: 0 },
+    { re: 0, im: 0 },
+  ]);
+});
+
+test("H(q2)|000> creates superposition on least-significant qubit", () => {
+  const result = simulate(3 as never, [singleAny("H", 2)]);
+  const invSqrt2 = Math.SQRT1_2;
+
+  assertStateArray(result.finalState, [
+    { re: invSqrt2, im: 0 },
+    { re: invSqrt2, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+  ]);
+});
+
+test("CNOT(q1 -> q2) flips q2 when q1 is one", () => {
+  const result = simulate(3 as never, [
+    singleAny("X", 1),
+    controlledAny("CNOT", 1, 2),
+  ]);
+
+  assertStateArray(result.finalState, [
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 1, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+  ]);
+});
+
+test("CNOT(q0 -> q1) flips non-adjacent metadata path in three-qubit state", () => {
+  const result = simulate(3 as never, [
+    singleAny("X", 0),
+    controlledAny("CNOT", 0, 1),
+  ]);
+
+  assertStateArray(result.finalState, [
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 1, im: 0 },
     { re: 0, im: 0 },
   ]);
 });
