@@ -47,7 +47,7 @@ export function GatePalette({
           Gate palette
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Drag any gate onto the qubit wire.
+          Drag gates onto the circuit wires.
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export function GatePalette({
             ))}
           </div>
           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-            Fixed orientation for this MVP: q0 controls q1.
+            Drop CNOT/CZ on the target wire; the other wire becomes the control.
           </p>
         </div>
       ) : null}

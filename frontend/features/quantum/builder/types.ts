@@ -2,8 +2,9 @@
  * Shared TypeScript types for the Quantum Circuit Builder.
  *
  * The Builder is a fully client-side teaching tool. The MVP supports exactly
- * one or two qubits: single-qubit gates target q0, while two-qubit gates use
- * the fixed q0 -> q1 orientation. The math is kept in pure modules under
+ * one or two qubits. In two-qubit mode, placed gate instances explicitly
+ * store their q0/q1 target metadata; the UI never infers targets from visual
+ * position after placement. The math is kept in pure modules under
  * ``./math`` and never imports React; the UI consumes these types through
  * props.
  */
@@ -53,6 +54,7 @@ export type TwoQubitState = readonly [Complex, Complex, Complex, Complex];
 export type QuantumState = SingleQubitState | TwoQubitState;
 
 export type QubitCount = 1 | 2;
+export type QubitIndex = 0 | 1;
 
 export type GateArity = 1 | 2;
 
@@ -131,9 +133,9 @@ export interface CircuitGate {
   id: string;
   gateId: GateId;
   arity: GateArity;
-  targetQubit?: number;
-  controlQubit?: number;
-  targetQubits?: number[];
+  targetQubit?: QubitIndex;
+  controlQubit?: QubitIndex;
+  targetQubits?: readonly [0, 1];
   params?: GateParams;
 }
 
@@ -172,6 +174,16 @@ export interface SimulationStep {
   narrative: string;
 }
 
+export type EntanglementClassification =
+  | "separable"
+  | "entangled"
+  | "maximally-entangled";
+
+export interface EntanglementInfo {
+  concurrence: number;
+  classification: EntanglementClassification;
+}
+
 export interface SimulationResult {
   qubitCount: QubitCount;
   initialState: QuantumState;
@@ -181,4 +193,5 @@ export interface SimulationResult {
   steps: SimulationStep[];
   finalProbabilities: MeasurementProbabilities;
   finalBloch?: BlochVector;
+  entanglement?: EntanglementInfo;
 }

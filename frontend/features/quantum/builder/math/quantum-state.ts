@@ -13,8 +13,9 @@
  * the matrix can be tensor-producted with identity on the remaining wires.
  */
 
-import { abs2, c, mul, add } from "@/features/quantum/builder/math/complex";
+import { abs, abs2, c, mul, add, sub } from "@/features/quantum/builder/math/complex";
 import type {
+  EntanglementClassification,
   Mat2,
   Probabilities,
   QuantumState,
@@ -22,6 +23,8 @@ import type {
   TwoQubitProbabilities,
   TwoQubitState,
 } from "@/features/quantum/builder/types";
+
+export const ENTANGLEMENT_EPSILON = 1e-6;
 
 /** Computational-basis state ``|0⟩ = [1, 0]``. */
 export const KET_0: SingleQubitState = [c(1, 0), c(0, 0)] as const;
@@ -63,6 +66,23 @@ export function twoQubitProbabilities(
     p10: abs2(state[2]),
     p11: abs2(state[3]),
   };
+}
+
+export function concurrence(state: TwoQubitState): number {
+  const [a, b, cAmp, d] = state;
+  const determinant = sub(mul(a, d), mul(b, cAmp));
+  const norm = state.reduce((sum, amp) => sum + abs2(amp), 0);
+  const raw = norm > ENTANGLEMENT_EPSILON ? (2 * abs(determinant)) / norm : 0;
+  return Math.min(1, Math.max(0, raw));
+}
+
+export function classifyEntanglement(
+  value: number,
+  epsilon = ENTANGLEMENT_EPSILON
+): EntanglementClassification {
+  if (value <= epsilon) return "separable";
+  if (value >= 1 - epsilon) return "maximally-entangled";
+  return "entangled";
 }
 
 export function isSingleQubitState(

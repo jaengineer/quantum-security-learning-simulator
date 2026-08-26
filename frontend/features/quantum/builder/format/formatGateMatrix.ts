@@ -1,5 +1,5 @@
 /**
- * Symbolic LaTeX formatter for 2x2 complex matrices.
+ * Symbolic LaTeX formatter for 2x2 and 4x4 complex matrices.
  *
  * The strategy is two-fold:
  *
@@ -16,7 +16,7 @@
  */
 
 import { formatComplexLatex } from "@/features/quantum/builder/format/formatComplexLatex";
-import type { Complex, Mat2 } from "@/features/quantum/builder/types";
+import type { Complex, Mat2, Mat4 } from "@/features/quantum/builder/types";
 
 interface ScalarCandidate {
   value: number;
@@ -71,7 +71,7 @@ function gaussianToLatex(z: Complex): string {
  * matrix. Returns the rendered LaTeX on success, ``null`` otherwise.
  */
 function tryFactor(
-  m: Mat2,
+  m: readonly Complex[],
   candidate: ScalarCandidate
 ): string | null {
   if (candidate.value === 0) return null;
@@ -85,8 +85,14 @@ function tryFactor(
       return null;
     }
   }
-  const [m00, m01, m10, m11] = scaled;
-  const body = `\\begin{bmatrix} ${gaussianToLatex(m00)} & ${gaussianToLatex(m01)} \\\\ ${gaussianToLatex(m10)} & ${gaussianToLatex(m11)} \\end{bmatrix}`;
+  const dimension = Math.sqrt(scaled.length);
+  const rows = Array.from({ length: dimension }, (_, row) =>
+    scaled
+      .slice(row * dimension, row * dimension + dimension)
+      .map(gaussianToLatex)
+      .join(" & ")
+  ).join(" \\\\ ");
+  const body = `\\begin{bmatrix} ${rows} \\end{bmatrix}`;
   return candidate.latex ? `${candidate.latex} ${body}` : body;
 }
 
@@ -95,11 +101,17 @@ function tryFactor(
  * ``scalar · integer-matrix`` form when one of the canonical prefactors
  * applies. Falls back to per-cell ``formatComplexLatex`` otherwise.
  */
-export function formatGateMatrixLatex(m: Mat2): string {
+export function formatGateMatrixLatex(m: Mat2 | Mat4): string {
   for (const candidate of SCALAR_CANDIDATES) {
     const factored = tryFactor(m, candidate);
     if (factored) return factored;
   }
-  const [m00, m01, m10, m11] = m;
-  return `\\begin{bmatrix} ${formatComplexLatex(m00)} & ${formatComplexLatex(m01)} \\\\ ${formatComplexLatex(m10)} & ${formatComplexLatex(m11)} \\end{bmatrix}`;
+  const dimension = Math.sqrt(m.length);
+  const rows = Array.from({ length: dimension }, (_, row) =>
+    m
+      .slice(row * dimension, row * dimension + dimension)
+      .map((cell) => formatComplexLatex(cell))
+      .join(" & ")
+  ).join(" \\\\ ");
+  return `\\begin{bmatrix} ${rows} \\end{bmatrix}`;
 }

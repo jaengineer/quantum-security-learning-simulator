@@ -65,10 +65,10 @@ export default function BuilderPage() {
                 Quantum Circuit Builder
               </h1>
               <p className="max-w-3xl text-base text-slate-600 dark:text-slate-300">
-                Design, simulate and visualize single-qubit quantum circuits.
-                Drag gates from the palette onto the wire, reorder or remove
-                them, and watch the state evolve in real time on the Bloch
-                sphere and in the step-by-step panel.
+                Design, simulate and visualize one- and two-qubit quantum
+                circuits. Drag gates from the palette onto q0/q1 wires, reorder
+                or remove them, and watch the state evolve through amplitudes,
+                probabilities and step-by-step explanations.
               </p>
             </div>
             <Link
@@ -85,8 +85,9 @@ export default function BuilderPage() {
 
         <footer className="mt-auto pt-6 text-xs text-slate-500 dark:text-slate-400">
           Simulation runs entirely in your browser (pure TypeScript, no
-          backend round-trip). Single-qubit only for now &mdash; multi-qubit
-          support is on the roadmap.
+          backend round-trip). The Bloch Sphere remains available for
+          single-qubit circuits; two-qubit mode focuses on state vectors,
+          probabilities and entanglement.
         </footer>
       </main>
 
