@@ -93,25 +93,17 @@ function InitialStep({
 function StepCard({
   step,
   qubitCount,
-  isBellPreset,
 }: {
   step: SimulationStep;
   qubitCount: QubitCount;
-  isBellPreset: boolean;
 }) {
   const gateDef = getGate(step.gate.gateId);
   const stateLatex = `\\lvert\\psi_${step.index + 1}\\rangle = ${formatDiracStateLatex(step.stateAfter)}`;
-  const matrixLatex = step.matrix && step.matrix.length === 4
-    ? `${gateDef.label} = ${formatGateMatrixLatex(step.matrix)}`
+  const operationLabel = operationLabelFor(step);
+  const matrixLatex = step.matrix
+    ? `${operationLabel} = ${formatGateMatrixLatex(step.matrix)}`
     : gateDef.latex;
-  const narrative =
-    qubitCount === 2 && step.gate.gateId === "H"
-      ? "H applies to q0, mixing the q0=0 and q0=1 amplitudes while q1 follows along."
-      : qubitCount === 2 && step.gate.gateId === "CNOT"
-        ? isBellPreset
-          ? "CNOT uses q0 as control and flips q1 on the |10⟩ branch, entangling the two qubits."
-          : "CNOT uses q0 as control and flips q1 whenever the q0 bit is 1."
-        : step.narrative;
+  const narrative = narrativeForStep(step, qubitCount);
   return (
     <article className="flex w-full flex-col gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
       <header className="flex items-center justify-between gap-2">
@@ -120,7 +112,7 @@ function StepCard({
             {step.index + 1}
           </span>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            Apply {gateDef.longName}
+            Apply {operationLabel}
           </p>
         </div>
         <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
@@ -147,33 +139,74 @@ function StepCard({
   );
 }
 
-function isBellPhiPlus(result: SimulationResult): boolean {
-  return (
-    result.qubitCount === 2 &&
-    result.steps.length === 2 &&
-    result.steps[0]?.gate.gateId === "H" &&
-    result.steps[1]?.gate.gateId === "CNOT"
-  );
+function operationLabelFor(step: SimulationStep): string {
+  const gate = step.gate;
+  if (gate.arity === 1) {
+    return `${gate.gateId}(q${gate.targetQubit ?? 0})`;
+  }
+  if (gate.gateId === "SWAP") return "SWAP(q0, q1)";
+  return `${gate.gateId}(q${gate.controlQubit ?? 0} \\to q${gate.targetQubit ?? 1})`;
 }
 
-function BellStateCallout() {
+function narrativeForStep(step: SimulationStep, qubitCount: QubitCount): string {
+  if (qubitCount !== 2) return step.narrative;
+
+  const gate = step.gate;
+  if (gate.arity === 1) {
+    const target = gate.targetQubit ?? 0;
+    if (target === 0) {
+      return `${gate.gateId} applies to q0 while q1 follows each branch of the two-qubit state.`;
+    }
+    return `${gate.gateId} applies to q1 inside each q0 branch of the two-qubit state.`;
+  }
+
+  if (gate.gateId === "CNOT") {
+    return `CNOT flips q${gate.targetQubit ?? 1} whenever control q${gate.controlQubit ?? 0} is |1⟩.`;
+  }
+
+  if (gate.gateId === "CZ") {
+    return `CZ keeps the basis labels fixed and applies a − phase to the joint |11⟩ branch.`;
+  }
+
+  if (gate.gateId === "SWAP") {
+    return "SWAP exchanges the |01⟩ and |10⟩ amplitudes, trading the q0 and q1 values.";
+  }
+
+  return step.narrative;
+}
+
+function EntanglementCallout({ result }: { result: SimulationResult }) {
+  if (result.qubitCount !== 2 || !result.entanglement) return null;
+
+  const { classification, concurrence } = result.entanglement;
+  const title =
+    classification === "maximally-entangled"
+      ? "Result: maximally entangled"
+      : classification === "entangled"
+        ? "Result: entangled state"
+        : "Result: separable state";
+  const description =
+    classification === "separable"
+      ? "The final state can be represented as two independent single-qubit states."
+      : classification === "maximally-entangled"
+        ? "The final state is maximally entangled: measuring one qubit determines the correlated outcome of the other."
+        : "The final state cannot be written as a tensor product of two independent qubit states.";
+
   return (
     <>
       <VerticalConnector />
       <article className="flex w-full flex-col gap-2 rounded-xl border border-fuchsia-200 bg-fuchsia-500/10 px-4 py-3 shadow-sm dark:border-fuchsia-500/40 dark:bg-fuchsia-500/10">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-fuchsia-700 dark:text-fuchsia-200">
-          Final Bell state
+          {title}
         </p>
         <QuantumFormula
-          expression="\\lvert\\Phi^+\\rangle = \\tfrac{\\lvert 00\\rangle + \\lvert 11\\rangle}{\\sqrt{2}}"
+          expression={`\\lvert\\psi_f\\rangle = ${formatDiracStateLatex(result.finalState)}`}
           displayMode="block"
           size="md"
           compact
         />
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          The H gate creates two branches, and CNOT correlates q1 with q0. The
-          final state is entangled: measurement returns |00⟩ or |11⟩ with equal
-          probability.
+          {description} Concurrence: {concurrence.toFixed(2)}.
         </p>
       </article>
     </>
@@ -192,7 +225,6 @@ function VerticalConnector() {
 export function StepByStepExplanation({ result }: StepByStepExplanationProps) {
   const { steps } = result;
   const initialLatex = formatDiracStateLatex(result.initialState);
-  const isBellPreset = isBellPhiPlus(result);
 
   if (steps.length === 0) {
     return (
@@ -215,11 +247,10 @@ export function StepByStepExplanation({ result }: StepByStepExplanationProps) {
           <StepCard
             step={step}
             qubitCount={result.qubitCount}
-            isBellPreset={isBellPreset}
           />
         </Fragment>
       ))}
-      {isBellPreset ? <BellStateCallout /> : null}
+      <EntanglementCallout result={result} />
     </div>
   );
 }

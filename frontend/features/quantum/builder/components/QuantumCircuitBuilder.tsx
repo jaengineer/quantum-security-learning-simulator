@@ -38,16 +38,21 @@ import { useCallback, useMemo, useState } from "react";
 import { BlochSphere3D } from "@/components/quantum/bloch/BlochSphere3D";
 import type { TrajectoryPoint } from "@/components/quantum/bloch/BlochSphere3D";
 import { CircuitCanvas } from "@/features/quantum/builder/components/CircuitCanvas";
+import { EntanglementPanel } from "@/features/quantum/builder/components/EntanglementPanel";
 import { GatePalette } from "@/features/quantum/builder/components/GatePalette";
 import { SimulationResultPanel } from "@/features/quantum/builder/components/SimulationResultPanel";
 import { StepByStepExplanation } from "@/features/quantum/builder/components/StepByStepExplanation";
-import type { BuilderPreset } from "@/features/quantum/builder/data/presets";
+import type {
+  BuilderPreset,
+  BuilderPresetGate,
+} from "@/features/quantum/builder/data/presets";
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import { simulate } from "@/features/quantum/builder/math/quantum-simulator";
 import type {
   GateId,
   GateInstance,
   QubitCount,
+  QubitIndex,
 } from "@/features/quantum/builder/types";
 
 function newUid(): string {
@@ -60,13 +65,20 @@ function newUid(): string {
   return `gate-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 }
 
-function makeInstance(id: GateId, theta?: number): GateInstance {
+interface GateInstanceOptions {
+  theta?: number;
+  targetQubit?: QubitIndex;
+  controlQubit?: QubitIndex;
+  targetQubits?: readonly [0, 1];
+}
+
+function makeInstance(id: GateId, options: GateInstanceOptions = {}): GateInstance {
   const def = getGate(id);
   const base = {
     id: newUid(),
     gateId: id,
     arity: def.arity,
-    params: def.parametric ? { theta: theta ?? Math.PI / 2 } : undefined,
+    params: def.parametric ? { theta: options.theta ?? Math.PI / 2 } : undefined,
   } satisfies GateInstance;
 
   if (def.arity === 2 && id === "SWAP") {
@@ -74,10 +86,23 @@ function makeInstance(id: GateId, theta?: number): GateInstance {
   }
 
   if (def.arity === 2) {
-    return { ...base, controlQubit: 0, targetQubit: 1 };
+    return {
+      ...base,
+      controlQubit: options.controlQubit ?? 0,
+      targetQubit: options.targetQubit ?? 1,
+    };
   }
 
-  return { ...base, targetQubit: 0 };
+  return { ...base, targetQubit: options.targetQubit ?? 0 };
+}
+
+function makeInstanceFromPreset(spec: BuilderPresetGate): GateInstance {
+  return makeInstance(spec.gateId, {
+    theta: spec.params?.theta,
+    targetQubit: spec.targetQubit,
+    controlQubit: spec.controlQubit,
+    targetQubits: spec.targetQubits,
+  });
 }
 
 export function QuantumCircuitBuilder() {
@@ -137,13 +162,36 @@ export function QuantumCircuitBuilder() {
     if (activeSource === "palette") {
       const gateId = active.data.current?.gateId as GateId | undefined;
       const theta = active.data.current?.theta as number | undefined;
+      const targetQubit = over.data.current?.targetQubit as QubitIndex | undefined;
       if (!gateId) return;
       const def = getGate(gateId);
       if (def.arity === 2 && qubitCount !== 2) return;
       // Only append when dropped onto the canvas drop zone or another canvas
       // item. Drops anywhere else are ignored.
       if (overSource !== "canvas-drop" && overSource !== "canvas") return;
-      setGates((current) => [...current, makeInstance(gateId, theta)]);
+      setGates((current) => {
+        if (def.arity === 1) {
+          return [
+            ...current,
+            makeInstance(gateId, {
+              theta,
+              targetQubit: qubitCount === 2 ? targetQubit ?? 0 : 0,
+            }),
+          ];
+        }
+        if (gateId === "SWAP") {
+          return [...current, makeInstance(gateId)];
+        }
+        const controlledTarget = targetQubit ?? 1;
+        const controlQubit = controlledTarget === 0 ? 1 : 0;
+        return [
+          ...current,
+          makeInstance(gateId, {
+            controlQubit,
+            targetQubit: controlledTarget,
+          }),
+        ];
+      });
       return;
     }
 
@@ -171,7 +219,7 @@ export function QuantumCircuitBuilder() {
 
   const handleApplyPreset = useCallback((preset: BuilderPreset) => {
     setQubitCount(preset.qubitCount);
-    setGates(preset.gates.map((id) => makeInstance(id)));
+    setGates(preset.gates.map(makeInstanceFromPreset));
   }, []);
 
   const handleRunSimulation = useCallback(() => {
@@ -275,13 +323,9 @@ export function QuantumCircuitBuilder() {
                   Multi-qubit state
                 </h2>
               </header>
-              <div className="rounded-xl border border-dashed border-fuchsia-300 bg-fuchsia-500/10 p-4 text-sm text-slate-600 dark:border-fuchsia-500/40 dark:bg-fuchsia-500/10 dark:text-slate-300">
-                <p>
-                  A two-qubit state cannot generally be represented by a single
-                  Bloch sphere. Use the state vector and measurement
-                  probabilities below.
-                </p>
-              </div>
+              {result.entanglement ? (
+                <EntanglementPanel entanglement={result.entanglement} />
+              ) : null}
             </>
           )}
         </aside>

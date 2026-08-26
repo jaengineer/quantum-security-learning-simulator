@@ -21,7 +21,11 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { GATE_PALETTE_STYLES } from "@/features/quantum/builder/components/gatePaletteStyles";
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
-import type { GateInstance, QubitCount } from "@/features/quantum/builder/types";
+import type {
+  GateInstance,
+  QubitCount,
+  QubitIndex,
+} from "@/features/quantum/builder/types";
 
 const COLUMN_WIDTH = 88;
 const STATE_LABEL_WIDTH = 76;
@@ -54,6 +58,50 @@ function wireCentersFor(qubitCount: QubitCount): { q0: number; q1?: number } {
 function gateThetaLabel(gate: GateInstance): string | null {
   if (!gate.params) return null;
   return `${((gate.params.theta * 180) / Math.PI).toFixed(0)}°`;
+}
+
+function centerForQubit(
+  qubit: QubitIndex | undefined,
+  q0Center: number,
+  q1Center?: number
+): number {
+  return qubit === 1 && typeof q1Center === "number" ? q1Center : q0Center;
+}
+
+function WireDropZone({
+  id,
+  targetQubit,
+  top,
+  left,
+  right,
+}: {
+  id: string;
+  targetQubit: QubitIndex;
+  top: number;
+  left: number;
+  right: number;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: { source: "canvas-drop", targetQubit },
+  });
+
+  return (
+    <span
+      ref={setNodeRef}
+      className={[
+        "absolute z-[1] rounded-xl border border-transparent transition",
+        isOver ? "border-violet-400 bg-violet-500/10" : "",
+      ].join(" ")}
+      style={{
+        left,
+        right,
+        top: top - GATE_SIZE / 2,
+        height: GATE_SIZE,
+      }}
+      aria-hidden
+    />
+  );
 }
 
 function ControlDot() {
@@ -121,7 +169,11 @@ function CanvasGateColumn({
     isDragging,
   } = useSortable({
     id: gate.id,
-    data: { source: "canvas", uid: gate.id },
+    data: {
+      source: "canvas",
+      uid: gate.id,
+      targetQubit: gate.targetQubit ?? 0,
+    },
   });
 
   const inlineStyle = {
@@ -132,6 +184,7 @@ function CanvasGateColumn({
   };
 
   const thetaLabel = gateThetaLabel(gate);
+  const singleGateCenter = centerForQubit(gate.targetQubit, q0Center, q1Center);
   const singleGateFace = (
     <span
       className={[
@@ -143,7 +196,7 @@ function CanvasGateColumn({
         height: GATE_SIZE,
         width: GATE_SIZE,
         left: (COLUMN_WIDTH - GATE_SIZE) / 2,
-        top: q0Center - GATE_SIZE / 2,
+        top: singleGateCenter - GATE_SIZE / 2,
       }}
     >
       {def.label}
@@ -155,13 +208,23 @@ function CanvasGateColumn({
     </span>
   );
 
-  const connectorStartClearance =
-    gate.gateId === "SWAP" ? TWO_QUBIT_SYMBOL_SIZE / 2 : CONTROL_DOT_SIZE / 2;
-  const connectorEndClearance = TWO_QUBIT_SYMBOL_SIZE / 2;
-  const connectorTop = q0Center + connectorStartClearance;
+  const controlCenter = centerForQubit(gate.controlQubit, q0Center, q1Center);
+  const targetCenter = centerForQubit(gate.targetQubit ?? 1, q0Center, q1Center);
+  const topCenter = Math.min(controlCenter, targetCenter);
+  const bottomCenter = Math.max(controlCenter, targetCenter);
+  const topIsControl = controlCenter <= targetCenter;
+  const topClearance =
+    gate.gateId === "SWAP" || !topIsControl
+      ? TWO_QUBIT_SYMBOL_SIZE / 2
+      : CONTROL_DOT_SIZE / 2;
+  const bottomClearance =
+    gate.gateId === "SWAP" || topIsControl
+      ? TWO_QUBIT_SYMBOL_SIZE / 2
+      : CONTROL_DOT_SIZE / 2;
+  const connectorTop = topCenter + topClearance;
   const connectorHeight =
     qubitCount === 2 && typeof q1Center === "number"
-      ? Math.max(0, q1Center - connectorEndClearance - connectorTop)
+      ? Math.max(0, bottomCenter - bottomClearance - connectorTop)
       : 0;
 
   return (
@@ -189,7 +252,7 @@ function CanvasGateColumn({
             />
             <span
               className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-              style={{ left: COLUMN_WIDTH / 2, top: q0Center }}
+              style={{ left: COLUMN_WIDTH / 2, top: controlCenter }}
             >
               {gate.gateId === "SWAP" ? (
                 <TargetSymbol label="×" variant="swap" />
@@ -199,7 +262,7 @@ function CanvasGateColumn({
             </span>
             <span
               className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-              style={{ left: COLUMN_WIDTH / 2, top: q1Center }}
+              style={{ left: COLUMN_WIDTH / 2, top: targetCenter }}
             >
               {gate.gateId === "CZ" ? (
                 <TargetSymbol label="Z" variant="square" />
@@ -220,7 +283,7 @@ function CanvasGateColumn({
         aria-label={`Remove ${def.longName} gate`}
         title="Remove"
         className="absolute right-2 z-[3] flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-xs text-slate-600 shadow hover:bg-rose-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-        style={{ top: q0Center - GATE_SIZE / 2 - 8 }}
+        style={{ top: singleGateCenter - GATE_SIZE / 2 - 8 }}
       >
         {"\u00D7"}
       </button>
@@ -238,7 +301,8 @@ export function CircuitCanvas({
 }: CircuitCanvasProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: "builder-canvas",
-    data: { source: "canvas-drop" },
+    data: { source: "canvas-drop", targetQubit: 0 },
+    disabled: qubitCount === 2,
   });
   const wireHeight = qubitCount === 2 ? TWO_WIRE_HEIGHT : SINGLE_WIRE_HEIGHT;
   const { q0, q1 } = wireCentersFor(qubitCount);
@@ -260,7 +324,7 @@ export function CircuitCanvas({
           <p className="text-xs text-slate-500 dark:text-slate-400">
             {qubitCount === 1
               ? "Time flows left \u2192 right. Drag gates from the palette and drop them on the wire."
-              : "Time flows left \u2192 right. Single-qubit gates target q0; two-qubit gates use q0 \u2192 q1."}
+              : "Time flows left \u2192 right. Drop single-qubit gates on q0 or q1; drop CNOT/CZ on the target wire."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -347,6 +411,24 @@ export function CircuitCanvas({
                 className="absolute h-0.5 rounded-full bg-slate-700/75 dark:bg-slate-300/75"
                 style={{ left: wireLeft, right: wireRight, top: q1 }}
               />
+            ) : null}
+            {qubitCount === 2 && typeof q1 === "number" ? (
+              <>
+                <WireDropZone
+                  id="builder-canvas-q0"
+                  targetQubit={0}
+                  top={q0}
+                  left={wireLeft}
+                  right={wireRight}
+                />
+                <WireDropZone
+                  id="builder-canvas-q1"
+                  targetQubit={1}
+                  top={q1}
+                  left={wireLeft}
+                  right={wireRight}
+                />
+              </>
             ) : null}
           </div>
 

@@ -215,13 +215,12 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     id: "CNOT",
     label: "CNOT",
     longName: "Controlled-NOT",
-    latex:
-      "\\operatorname{CNOT}_{q0\\to q1}: \\lvert 10\\rangle \\leftrightarrow \\lvert 11\\rangle",
+    latex: "\\operatorname{CNOT}: \\lvert c=1,t\\rangle \\mapsto \\lvert c=1,\\neg t\\rangle",
     palette: "twoQubit",
     arity: 2,
     parametric: false,
     description:
-      "CNOT flips q1 when q0 is |1⟩, using the fixed q0 → q1 orientation.",
+      "CNOT flips the target qubit when the control qubit is |1⟩.",
   },
   CZ: {
     id: "CZ",
@@ -232,7 +231,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     arity: 2,
     parametric: false,
     description:
-      "CZ applies a phase of -1 only to |11⟩, using q0 as control and q1 as target.",
+      "CZ applies a phase of -1 when both control and target are |1⟩.",
   },
   SWAP: {
     id: "SWAP",

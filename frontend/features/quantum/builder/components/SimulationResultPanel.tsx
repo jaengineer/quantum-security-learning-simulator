@@ -9,9 +9,12 @@
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
 import { formatDiracStateLatex } from "@/features/quantum/builder/format/formatDiracState";
 import { formatGateMatrixLatex } from "@/features/quantum/builder/format/formatGateMatrix";
+import { clean } from "@/features/quantum/builder/math/complex";
 import type {
+  Complex,
   MeasurementProbabilities,
   Probabilities,
+  QuantumState,
   SimulationResult,
   TwoQubitProbabilities,
 } from "@/features/quantum/builder/types";
@@ -80,6 +83,36 @@ function isTwoQubitProbabilities(
   return "p00" in probabilities;
 }
 
+const SINGLE_STATE_LABELS = ["|0⟩", "|1⟩"] as const;
+const TWO_STATE_LABELS = ["|00⟩", "|01⟩", "|10⟩", "|11⟩"] as const;
+
+function formatComplexAmplitude(value: Complex): string {
+  const z = clean(value, 1e-9);
+  const re = z.re.toFixed(3);
+  const im = Math.abs(z.im).toFixed(3);
+  return `${re} ${z.im >= 0 ? "+" : "-"} ${im}i`;
+}
+
+function StateVectorRows({ state }: { state: QuantumState }) {
+  const labels = state.length === 2 ? SINGLE_STATE_LABELS : TWO_STATE_LABELS;
+  return (
+    <div className="flex flex-col gap-1">
+      {state.map((amp, index) => (
+        <div
+          key={labels[index]}
+          className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 font-mono text-sm tabular-nums text-slate-700 dark:text-slate-200"
+        >
+          <span>{labels[index]}</span>
+          <span>{formatComplexAmplitude(amp)}</span>
+        </div>
+      ))}
+      <p className="pt-1 text-xs text-slate-500 dark:text-slate-400">
+        Amplitudes are complex numbers; probabilities are their squared magnitudes.
+      </p>
+    </div>
+  );
+}
+
 export function SimulationResultPanel({ result }: SimulationResultPanelProps) {
   const { finalState, finalProbabilities, finalUnitary, finalBloch } = result;
 
@@ -97,6 +130,10 @@ export function SimulationResultPanel({ result }: SimulationResultPanelProps) {
           size="md"
           compact
         />
+      </Section>
+
+      <Section title="State vector">
+        <StateVectorRows state={finalState} />
       </Section>
 
       <Section title="Measurement probabilities">
@@ -151,11 +188,18 @@ export function SimulationResultPanel({ result }: SimulationResultPanelProps) {
             compact
           />
         </Section>
+      ) : result.entanglement ? (
+        <Section title="Entanglement summary">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Concurrence = {result.entanglement.concurrence.toFixed(2)} (
+            {result.entanglement.classification}). Inspect the state vector and
+            measurement probabilities separately.
+          </p>
+        </Section>
       ) : (
         <Section title="Multi-qubit state">
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            A two-qubit state cannot generally be represented by one Bloch
-            sphere; inspect the state vector and basis probabilities instead.
+            Inspect the state vector and basis probabilities separately.
           </p>
         </Section>
       )}
@@ -170,14 +214,7 @@ export function SimulationResultPanel({ result }: SimulationResultPanelProps) {
             x = 2 Re(α*β), y = 2 Im(α*β), z = |α|² − |β|²
           </p>
         </Section>
-      ) : (
-        <Section title="Entanglement indicator">
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            If amplitudes cannot be factored into independent q0 and q1 states,
-            the circuit has created entanglement.
-          </p>
-        </Section>
-      )}
+      ) : null}
     </section>
   );
 }
