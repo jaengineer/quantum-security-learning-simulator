@@ -113,7 +113,7 @@ function PaletteBlock({ gateId, theta }: PaletteBlockProps) {
 }
 
 function CanvasBlock({ gate, onRemove }: CanvasBlockProps) {
-  const def = getGate(gate.id);
+  const def = getGate(gate.gateId);
   const style = GATE_PALETTE_STYLES[def.palette];
   const {
     attributes,
@@ -123,10 +123,10 @@ function CanvasBlock({ gate, onRemove }: CanvasBlockProps) {
     transition,
     isDragging,
   } = useSortable({
-    id: gate.uid,
-    data: { source: "canvas", uid: gate.uid },
+    id: gate.id,
+    data: { source: "canvas", uid: gate.id },
   });
-  const entry = getGlossaryEntryForGate(gate.id);
+  const entry = getGlossaryEntryForGate(gate.gateId);
 
   const inlineStyle = {
     transform: CSS.Transform.toString(transform),
@@ -175,7 +175,7 @@ function CanvasBlock({ gate, onRemove }: CanvasBlockProps) {
       </LearnableTooltip>
       <button
         type="button"
-        onClick={() => onRemove(gate.uid)}
+        onClick={() => onRemove(gate.id)}
         aria-label={`Remove ${def.longName} gate`}
         title="Remove"
         className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-xs text-slate-600 shadow hover:bg-rose-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"

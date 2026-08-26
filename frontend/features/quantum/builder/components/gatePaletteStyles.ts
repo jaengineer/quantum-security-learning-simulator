@@ -49,4 +49,10 @@ export const GATE_PALETTE_STYLES: Record<GatePalette, GatePaletteStyle> = {
     label: "text-slate-700 dark:text-slate-200",
     ring: "ring-slate-400/50",
   },
+  twoQubit: {
+    block:
+      "bg-fuchsia-500/15 border-fuchsia-500/40 dark:bg-fuchsia-500/20 dark:border-fuchsia-400/50",
+    label: "text-fuchsia-700 dark:text-fuchsia-200",
+    ring: "ring-fuchsia-400/60",
+  },
 };
