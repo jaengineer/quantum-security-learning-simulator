@@ -28,9 +28,10 @@ import type {
   GateParams,
   Mat2,
   QuantumGate,
+  SingleQubitGateId,
 } from "@/features/quantum/builder/types";
 
-function requireTheta(params: GateParams | undefined, id: GateId): number {
+function requireTheta(params: GateParams | undefined, id: SingleQubitGateId): number {
   if (!params) {
     throw new Error(
       `Gate ${id} is parametric and requires a 'theta' value (received undefined)`
@@ -48,6 +49,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     longName: "Identity",
     latex: "I = \\begin{bmatrix}1 & 0 \\\\ 0 & 1\\end{bmatrix}",
     palette: "identity",
+    arity: 1,
     parametric: false,
     description: "The identity leaves the state unchanged.",
     matrix: () => [ONE, ZERO, ZERO, ONE] as const,
@@ -58,6 +60,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     longName: "Pauli-X (NOT)",
     latex: "X = \\begin{bmatrix}0 & 1 \\\\ 1 & 0\\end{bmatrix}",
     palette: "pauli",
+    arity: 1,
     parametric: false,
     description:
       "Pauli-X is the quantum NOT: it swaps the amplitudes of |0⟩ and |1⟩.",
@@ -69,6 +72,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     longName: "Pauli-Y",
     latex: "Y = \\begin{bmatrix}0 & -i \\\\ i & 0\\end{bmatrix}",
     palette: "pauli",
+    arity: 1,
     parametric: false,
     description:
       "Pauli-Y combines a bit flip with a phase flip; rotates by π around the Y axis on the Bloch sphere.",
@@ -80,6 +84,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     longName: "Pauli-Z",
     latex: "Z = \\begin{bmatrix}1 & 0 \\\\ 0 & -1\\end{bmatrix}",
     palette: "pauli",
+    arity: 1,
     parametric: false,
     description:
       "Pauli-Z flips the phase of |1⟩ while leaving |0⟩ untouched.",
@@ -92,6 +97,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     latex:
       "H = \\tfrac{1}{\\sqrt{2}}\\begin{bmatrix}1 & 1 \\\\ 1 & -1\\end{bmatrix}",
     palette: "hadamard",
+    arity: 1,
     parametric: false,
     description:
       "The Hadamard gate creates an equal superposition between |0⟩ and |1⟩.",
@@ -109,6 +115,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     longName: "Phase (¼-turn)",
     latex: "S = \\begin{bmatrix}1 & 0 \\\\ 0 & i\\end{bmatrix}",
     palette: "phase",
+    arity: 1,
     parametric: false,
     description:
       "S applies a quarter-turn phase (π/2) to the |1⟩ component.",
@@ -120,6 +127,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     longName: "S-dagger",
     latex: "S^{\\dagger} = \\begin{bmatrix}1 & 0 \\\\ 0 & -i\\end{bmatrix}",
     palette: "phase",
+    arity: 1,
     parametric: false,
     description:
       "S† is the inverse of S; it applies a -π/2 phase to the |1⟩ component.",
@@ -132,6 +140,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     latex:
       "T = \\begin{bmatrix}1 & 0 \\\\ 0 & e^{i\\pi/4}\\end{bmatrix}",
     palette: "phase",
+    arity: 1,
     parametric: false,
     description:
       "T applies an eighth-turn phase (π/4) to the |1⟩ component.",
@@ -144,6 +153,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     latex:
       "T^{\\dagger} = \\begin{bmatrix}1 & 0 \\\\ 0 & e^{-i\\pi/4}\\end{bmatrix}",
     palette: "phase",
+    arity: 1,
     parametric: false,
     description:
       "T† is the inverse of T; it applies a -π/4 phase to the |1⟩ component.",
@@ -156,6 +166,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     latex:
       "R_x(\\theta) = \\begin{bmatrix}\\cos\\tfrac{\\theta}{2} & -i\\sin\\tfrac{\\theta}{2} \\\\ -i\\sin\\tfrac{\\theta}{2} & \\cos\\tfrac{\\theta}{2}\\end{bmatrix}",
     palette: "rotation",
+    arity: 1,
     parametric: true,
     description:
       "Rotates the state vector by θ around the X axis of the Bloch sphere.",
@@ -173,6 +184,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     latex:
       "R_y(\\theta) = \\begin{bmatrix}\\cos\\tfrac{\\theta}{2} & -\\sin\\tfrac{\\theta}{2} \\\\ \\sin\\tfrac{\\theta}{2} & \\cos\\tfrac{\\theta}{2}\\end{bmatrix}",
     palette: "rotation",
+    arity: 1,
     parametric: true,
     description:
       "Rotates the state vector by θ around the Y axis of the Bloch sphere.",
@@ -190,6 +202,7 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
     latex:
       "R_z(\\theta) = \\begin{bmatrix}e^{-i\\theta/2} & 0 \\\\ 0 & e^{i\\theta/2}\\end{bmatrix}",
     palette: "rotation",
+    arity: 1,
     parametric: true,
     description:
       "Rotates the state vector by θ around the Z axis of the Bloch sphere.",
@@ -198,10 +211,43 @@ const GATE_DEFS: Record<GateId, QuantumGate> = {
       return [expI(-theta / 2), ZERO, ZERO, expI(theta / 2)] as const;
     },
   },
+  CNOT: {
+    id: "CNOT",
+    label: "CNOT",
+    longName: "Controlled-NOT",
+    latex:
+      "\\operatorname{CNOT}_{q0\\to q1}: \\lvert 10\\rangle \\leftrightarrow \\lvert 11\\rangle",
+    palette: "twoQubit",
+    arity: 2,
+    parametric: false,
+    description:
+      "CNOT flips q1 when q0 is |1⟩, using the fixed q0 → q1 orientation.",
+  },
+  CZ: {
+    id: "CZ",
+    label: "CZ",
+    longName: "Controlled-Z",
+    latex: "CZ = \\operatorname{diag}(1, 1, 1, -1)",
+    palette: "twoQubit",
+    arity: 2,
+    parametric: false,
+    description:
+      "CZ applies a phase of -1 only to |11⟩, using q0 as control and q1 as target.",
+  },
+  SWAP: {
+    id: "SWAP",
+    label: "SWAP",
+    longName: "SWAP",
+    latex: "SWAP: \\lvert 01\\rangle \\leftrightarrow \\lvert 10\\rangle",
+    palette: "twoQubit",
+    arity: 2,
+    parametric: false,
+    description: "SWAP exchanges the q0 and q1 amplitudes in the two-qubit state.",
+  },
 };
 
 /** Ordered list of every gate id offered by the palette. */
-export const GATE_ORDER: readonly GateId[] = [
+export const SINGLE_QUBIT_GATE_ORDER: readonly SingleQubitGateId[] = [
   "I",
   "X",
   "Y",
@@ -216,6 +262,13 @@ export const GATE_ORDER: readonly GateId[] = [
   "Rz",
 ] as const;
 
+export const TWO_QUBIT_GATE_ORDER = ["CNOT", "CZ", "SWAP"] as const;
+
+export const GATE_ORDER: readonly GateId[] = [
+  ...SINGLE_QUBIT_GATE_ORDER,
+  ...TWO_QUBIT_GATE_ORDER,
+] as const;
+
 /** Lookup the static catalog entry for a gate id. */
 export function getGate(id: GateId): QuantumGate {
   const gate = GATE_DEFS[id];
@@ -224,9 +277,15 @@ export function getGate(id: GateId): QuantumGate {
 }
 
 /** Resolve the concrete 2x2 unitary for a gate id and its parameters. */
-export function matrixOf(id: GateId, params?: GateParams): Mat2 {
-  return getGate(id).matrix(params);
+export function matrixOf(id: SingleQubitGateId, params?: GateParams): Mat2 {
+  const matrix = getGate(id).matrix;
+  if (!matrix) throw new Error(`Gate ${id} does not expose a 2x2 matrix`);
+  return matrix(params);
 }
 
 /** All gates in the order they should appear in the palette. */
 export const ALL_GATES: readonly QuantumGate[] = GATE_ORDER.map(getGate);
+export const SINGLE_QUBIT_GATES: readonly QuantumGate[] =
+  SINGLE_QUBIT_GATE_ORDER.map(getGate);
+export const TWO_QUBIT_GATES: readonly QuantumGate[] =
+  TWO_QUBIT_GATE_ORDER.map(getGate);

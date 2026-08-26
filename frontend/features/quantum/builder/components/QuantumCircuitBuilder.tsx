@@ -9,8 +9,8 @@
  *     identified by ``active.data.current.source`` ("palette" vs "canvas")
  *     so a single ``onDragEnd`` handler can route both "add new gate" and
  *     "reorder existing gate".
- *   - Memoises ``simulate(KET_0, gates)`` so the math runs at every change
- *     but never spuriously when unrelated state moves.
+ *   - Memoises ``simulate(qubitCount, gates)`` so the math runs at every
+ *     change but never spuriously when unrelated state moves.
  *   - Passes derived state down by props; child components have no
  *     awareness of how the simulation is produced.
  *
@@ -35,7 +35,8 @@ import {
 } from "@dnd-kit/sortable";
 import { useCallback, useMemo, useState } from "react";
 
-import { BlochSphereViewer } from "@/features/quantum/builder/components/BlochSphereViewer";
+import { BlochSphere3D } from "@/components/quantum/bloch/BlochSphere3D";
+import type { TrajectoryPoint } from "@/components/quantum/bloch/BlochSphere3D";
 import { CircuitCanvas } from "@/features/quantum/builder/components/CircuitCanvas";
 import { GatePalette } from "@/features/quantum/builder/components/GatePalette";
 import { SimulationResultPanel } from "@/features/quantum/builder/components/SimulationResultPanel";
@@ -43,8 +44,11 @@ import { StepByStepExplanation } from "@/features/quantum/builder/components/Ste
 import type { BuilderPreset } from "@/features/quantum/builder/data/presets";
 import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import { simulate } from "@/features/quantum/builder/math/quantum-simulator";
-import { KET_0 } from "@/features/quantum/builder/math/quantum-state";
-import type { GateId, GateInstance } from "@/features/quantum/builder/types";
+import type {
+  GateId,
+  GateInstance,
+  QubitCount,
+} from "@/features/quantum/builder/types";
 
 function newUid(): string {
   if (
@@ -58,14 +62,26 @@ function newUid(): string {
 
 function makeInstance(id: GateId, theta?: number): GateInstance {
   const def = getGate(id);
-  return {
-    uid: newUid(),
-    id,
+  const base = {
+    id: newUid(),
+    gateId: id,
+    arity: def.arity,
     params: def.parametric ? { theta: theta ?? Math.PI / 2 } : undefined,
-  };
+  } satisfies GateInstance;
+
+  if (def.arity === 2 && id === "SWAP") {
+    return { ...base, targetQubits: [0, 1] };
+  }
+
+  if (def.arity === 2) {
+    return { ...base, controlQubit: 0, targetQubit: 1 };
+  }
+
+  return { ...base, targetQubit: 0 };
 }
 
 export function QuantumCircuitBuilder() {
+  const [qubitCount, setQubitCount] = useState<QubitCount>(1);
   const [gates, setGates] = useState<GateInstance[]>([]);
   // Stays around so we can flash the panel if the user clicks "Run" with
   // an empty circuit; not strictly required because the math already runs
@@ -77,7 +93,34 @@ export function QuantumCircuitBuilder() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const result = useMemo(() => simulate(KET_0, gates), [gates]);
+  const result = useMemo(() => simulate(qubitCount, gates), [qubitCount, gates]);
+
+  // Path taken by the Bloch vector through the circuit, starting from |0⟩.
+  // Each entry carries the gate that produced it plus a step heading so a
+  // future hover/click handler on the 3D trajectory can surface tooltips.
+  const trajectory = useMemo<TrajectoryPoint[]>(() => {
+    const start: TrajectoryPoint = {
+      x: 0,
+      y: 0,
+      z: 1,
+      stateLabel: "|0⟩",
+      stepLabel: "start",
+    };
+    if (result.qubitCount !== 1) return [start];
+    const stepPoints: TrajectoryPoint[] = result.steps.flatMap((step) => {
+      if (!step.blochAfter) return [];
+      return [
+        {
+          x: step.blochAfter.x,
+          y: step.blochAfter.y,
+          z: step.blochAfter.z,
+          gateId: step.gate.gateId,
+          stepLabel: `Step ${step.index + 1}`,
+        },
+      ];
+    });
+    return [start, ...stepPoints];
+  }, [result.qubitCount, result.steps]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -95,6 +138,8 @@ export function QuantumCircuitBuilder() {
       const gateId = active.data.current?.gateId as GateId | undefined;
       const theta = active.data.current?.theta as number | undefined;
       if (!gateId) return;
+      const def = getGate(gateId);
+      if (def.arity === 2 && qubitCount !== 2) return;
       // Only append when dropped onto the canvas drop zone or another canvas
       // item. Drops anywhere else are ignored.
       if (overSource !== "canvas-drop" && overSource !== "canvas") return;
@@ -107,16 +152,16 @@ export function QuantumCircuitBuilder() {
       const overUid = over.id as string;
       if (activeUid === overUid) return;
       setGates((current) => {
-        const oldIndex = current.findIndex((g) => g.uid === activeUid);
-        const newIndex = current.findIndex((g) => g.uid === overUid);
+        const oldIndex = current.findIndex((g) => g.id === activeUid);
+        const newIndex = current.findIndex((g) => g.id === overUid);
         if (oldIndex === -1 || newIndex === -1) return current;
         return arrayMove(current, oldIndex, newIndex);
       });
     }
-  }, []);
+  }, [qubitCount]);
 
   const handleRemoveGate = useCallback((uid: string) => {
-    setGates((current) => current.filter((g) => g.uid !== uid));
+    setGates((current) => current.filter((g) => g.id !== uid));
   }, []);
 
   const handleClear = useCallback(() => {
@@ -125,11 +170,23 @@ export function QuantumCircuitBuilder() {
   }, []);
 
   const handleApplyPreset = useCallback((preset: BuilderPreset) => {
+    setQubitCount(preset.qubitCount);
     setGates(preset.gates.map((id) => makeInstance(id)));
   }, []);
 
   const handleRunSimulation = useCallback(() => {
     setLastRunAt(Date.now());
+  }, []);
+
+  const handleQubitCountChange = useCallback((next: QubitCount) => {
+    setQubitCount((current) => {
+      if (current === next) return current;
+      if (current === 2 && next === 1) {
+        setGates([]);
+        setLastRunAt(0);
+      }
+      return next;
+    });
   }, []);
 
   const isEmpty = gates.length === 0;
@@ -142,15 +199,18 @@ export function QuantumCircuitBuilder() {
     >
       <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
         <GatePalette
+          qubitCount={qubitCount}
           onApplyPreset={handleApplyPreset}
           onClear={handleClear}
         />
 
         <div className="flex flex-col gap-5">
           <CircuitCanvas
+            qubitCount={qubitCount}
             gates={gates}
             onRemoveGate={handleRemoveGate}
             onRunSimulation={handleRunSimulation}
+            onQubitCountChange={handleQubitCountChange}
             isEmpty={isEmpty}
           />
 
@@ -183,22 +243,47 @@ export function QuantumCircuitBuilder() {
         </div>
 
         <aside className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/55 lg:sticky lg:top-6 lg:self-start">
-          <header className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-              Bloch sphere
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Geometric view of the current single-qubit state.
-            </p>
-          </header>
-          <BlochSphereViewer
-            bloch={result.finalBloch}
-            caption={
-              isEmpty
-                ? "|0⟩ sits at the north pole."
-                : "Vector animates as you add or reorder gates."
-            }
-          />
+          {result.qubitCount === 1 && result.finalBloch ? (
+            <>
+              <header className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  Bloch sphere
+                </h2>
+              </header>
+              <BlochSphere3D
+                x={result.finalBloch.x}
+                y={result.finalBloch.y}
+                z={result.finalBloch.z}
+                trajectory={trajectory}
+                showTrajectory={!isEmpty}
+                showLabels
+                showControls
+                expandable
+                viewMode="compact"
+                height={520}
+                caption={
+                  isEmpty
+                    ? "|0⟩ sits at the north pole. Drag to rotate; press Expand for a focused view."
+                    : "Drag to rotate. The trail shows how each gate moved the state."
+                }
+              />
+            </>
+          ) : (
+            <>
+              <header className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  Multi-qubit state
+                </h2>
+              </header>
+              <div className="rounded-xl border border-dashed border-fuchsia-300 bg-fuchsia-500/10 p-4 text-sm text-slate-600 dark:border-fuchsia-500/40 dark:bg-fuchsia-500/10 dark:text-slate-300">
+                <p>
+                  A two-qubit state cannot generally be represented by a single
+                  Bloch sphere. Use the state vector and measurement
+                  probabilities below.
+                </p>
+              </div>
+            </>
+          )}
         </aside>
       </div>
     </DndContext>

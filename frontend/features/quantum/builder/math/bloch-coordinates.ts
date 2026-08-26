@@ -23,9 +23,12 @@
  */
 
 import { abs2, conj, mul } from "@/features/quantum/builder/math/complex";
-import type { BlochVector, QuantumState } from "@/features/quantum/builder/types";
+import type {
+  BlochVector,
+  SingleQubitState,
+} from "@/features/quantum/builder/types";
 
-export function stateToBloch(state: QuantumState): BlochVector {
+export function stateToBloch(state: SingleQubitState): BlochVector {
   const [alpha, beta] = state;
   const inner = mul(conj(alpha), beta);
   return {

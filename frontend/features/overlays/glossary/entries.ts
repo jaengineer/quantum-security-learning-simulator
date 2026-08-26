@@ -112,6 +112,27 @@ export const GLOSSARY_ENTRIES: readonly GlossaryEntry[] = [
     latex: "R_z(\\theta) = e^{-i\\theta Z / 2}",
     theoryConceptId: "spectral-theorem",
   },
+  {
+    id: "gate-cnot",
+    term: "Controlled-NOT (CNOT)",
+    summary: "Flips q1 only when the control qubit q0 is |1⟩.",
+    latex: "\\operatorname{CNOT}_{q0\\to q1}",
+    theoryConceptId: "quantum-entanglement",
+  },
+  {
+    id: "gate-cz",
+    term: "Controlled-Z (CZ)",
+    summary: "Adds a -1 phase to |11⟩ while leaving the other basis states unchanged.",
+    latex: "CZ = \\operatorname{diag}(1, 1, 1, -1)",
+    theoryConceptId: "quantum-entanglement",
+  },
+  {
+    id: "gate-swap",
+    term: "SWAP",
+    summary: "Exchanges the two qubit values, mapping |01⟩ to |10⟩ and |10⟩ to |01⟩.",
+    latex: "SWAP\\lvert ab\\rangle = \\lvert ba\\rangle",
+    theoryConceptId: "unitary-matrices",
+  },
 
   // --- Notation, states, operators ----------------------------------------
   {

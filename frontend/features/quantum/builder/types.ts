@@ -1,22 +1,11 @@
 /**
  * Shared TypeScript types for the Quantum Circuit Builder.
  *
- * The Builder is a fully client-side, single-qubit tool. Everything here is
- * intentionally narrow to a 2-dimensional Hilbert space so the implementation
- * stays auditable. The math is kept in pure modules under ``./math`` and never
- * imports React; the UI consumes these types through props.
- *
- * Extending to multi-qubit (future work)
- * --------------------------------------
- *   - ``QuantumState`` would become ``Complex[]`` of length ``2^n``.
- *   - ``Mat2`` would become ``Complex[][]`` (or a flat ``Complex[]`` of length
- *     ``2^n * 2^n``) and gates would carry ``targets: number[]`` plus an
- *     ``applyGate`` helper that tensor-products identity on non-target wires.
- *   - Controlled gates (CNOT, CZ, SWAP) would enter as a discriminated
- *     ``kind: "controlled"`` variant of ``QuantumGate``.
- *   - ``BlochVector`` only makes sense for a single qubit; multi-qubit
- *     visualizations would switch to probability heatmaps or density
- *     matrices.
+ * The Builder is a fully client-side teaching tool. The MVP supports exactly
+ * one or two qubits: single-qubit gates target q0, while two-qubit gates use
+ * the fixed q0 -> q1 orientation. The math is kept in pure modules under
+ * ``./math`` and never imports React; the UI consumes these types through
+ * props.
  */
 
 export interface Complex {
@@ -32,6 +21,26 @@ export interface Complex {
  */
 export type Mat2 = readonly [Complex, Complex, Complex, Complex];
 
+/** 4x4 complex matrix, row-major, used only for two-qubit MVP steps. */
+export type Mat4 = readonly [
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+  Complex,
+];
+
 /**
  * Single-qubit pure state ``|ψ⟩ = α |0⟩ + β |1⟩`` stored as ``[α, β]``.
  *
@@ -39,7 +48,13 @@ export type Mat2 = readonly [Complex, Complex, Complex, Complex];
  * is preserved by construction (only unitary operations are applied). A
  * ``probabilities()`` helper is provided for inspection.
  */
-export type QuantumState = readonly [Complex, Complex];
+export type SingleQubitState = readonly [Complex, Complex];
+export type TwoQubitState = readonly [Complex, Complex, Complex, Complex];
+export type QuantumState = SingleQubitState | TwoQubitState;
+
+export type QubitCount = 1 | 2;
+
+export type GateArity = 1 | 2;
 
 /**
  * Identifiers for every single-qubit gate the Builder exposes in its palette.
@@ -49,7 +64,7 @@ export type QuantumState = readonly [Complex, Complex];
  *   - ``Rx`` / ``Ry`` / ``Rz`` are parametric rotations; their matrix depends
  *     on the angle ``theta`` carried by the gate instance.
  */
-export type GateId =
+export type SingleQubitGateId =
   | "I"
   | "X"
   | "Y"
@@ -62,6 +77,10 @@ export type GateId =
   | "Rx"
   | "Ry"
   | "Rz";
+
+export type TwoQubitGateId = "CNOT" | "CZ" | "SWAP";
+
+export type GateId = SingleQubitGateId | TwoQubitGateId;
 
 export interface GateParams {
   /** Rotation angle in radians, only meaningful for ``Rx``/``Ry``/``Rz``. */
@@ -82,10 +101,16 @@ export interface QuantumGate {
   latex: string;
   /** Semantic color category used to tint the block. */
   palette: GatePalette;
+  /** Number of wires the gate acts on. */
+  arity: GateArity;
   /** Whether the gate has a runtime parameter (theta). */
   parametric: boolean;
-  /** Build the 2x2 matrix; ``params`` is required when ``parametric`` is true. */
-  matrix: (params?: GateParams) => Mat2;
+  /**
+   * Build the 2x2 matrix for single-qubit gates; ``params`` is required when
+   * ``parametric`` is true. Two-qubit gates are applied directly by the MVP
+   * simulator because their orientation is fixed.
+   */
+  matrix?: (params?: GateParams) => Mat2;
   /** Short didactic sentence reused as ``narrative`` in each simulation step. */
   description: string;
 }
@@ -95,17 +120,24 @@ export type GatePalette =
   | "pauli"
   | "phase"
   | "rotation"
-  | "identity";
+  | "identity"
+  | "twoQubit";
 
 /**
- * A concrete gate placed on the circuit. ``uid`` is stable across renders so
+ * A concrete gate placed on the circuit. ``id`` is stable across renders so
  * dnd-kit can identify the item across reorders.
  */
-export interface GateInstance {
-  uid: string;
-  id: GateId;
+export interface CircuitGate {
+  id: string;
+  gateId: GateId;
+  arity: GateArity;
+  targetQubit?: number;
+  controlQubit?: number;
+  targetQubits?: number[];
   params?: GateParams;
 }
+
+export type GateInstance = CircuitGate;
 
 export interface BlochVector {
   x: number;
@@ -118,25 +150,35 @@ export interface Probabilities {
   p1: number;
 }
 
+export interface TwoQubitProbabilities {
+  p00: number;
+  p01: number;
+  p10: number;
+  p11: number;
+}
+
+export type MeasurementProbabilities = Probabilities | TwoQubitProbabilities;
+
 export interface SimulationStep {
   /** Zero-based step index (matches array position). */
   index: number;
   gate: GateInstance;
   /** Matrix that was applied at this step (with concrete ``theta`` baked in). */
-  matrix: Mat2;
+  matrix?: Mat2 | Mat4;
   stateBefore: QuantumState;
   stateAfter: QuantumState;
-  probAfter: Probabilities;
-  blochAfter: BlochVector;
+  probAfter: MeasurementProbabilities;
+  blochAfter?: BlochVector;
   narrative: string;
 }
 
 export interface SimulationResult {
+  qubitCount: QubitCount;
   initialState: QuantumState;
   finalState: QuantumState;
   /** Product of every applied matrix, equivalent to the overall circuit unitary. */
-  finalUnitary: Mat2;
+  finalUnitary?: Mat2;
   steps: SimulationStep[];
-  finalProbabilities: Probabilities;
-  finalBloch: BlochVector;
+  finalProbabilities: MeasurementProbabilities;
+  finalBloch?: BlochVector;
 }

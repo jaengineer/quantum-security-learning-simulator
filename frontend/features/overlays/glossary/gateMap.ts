@@ -29,6 +29,9 @@ const GATE_TO_GLOSSARY: Record<GateId, string> = {
   Rx: "gate-rx",
   Ry: "gate-ry",
   Rz: "gate-rz",
+  CNOT: "gate-cnot",
+  CZ: "gate-cz",
+  SWAP: "gate-swap",
 };
 
 export function getGlossaryEntryForGate(gateId: GateId): GlossaryEntry | undefined {

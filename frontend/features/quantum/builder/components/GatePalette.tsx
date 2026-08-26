@@ -14,19 +14,31 @@ import { useState } from "react";
 
 import { QuantumGateBlock } from "@/features/quantum/builder/components/QuantumGateBlock";
 import { BUILDER_PRESETS } from "@/features/quantum/builder/data/presets";
-import { ALL_GATES } from "@/features/quantum/builder/math/quantum-gates";
+import {
+  SINGLE_QUBIT_GATES,
+  TWO_QUBIT_GATES,
+} from "@/features/quantum/builder/math/quantum-gates";
 import type { BuilderPreset } from "@/features/quantum/builder/data/presets";
+import type { QubitCount } from "@/features/quantum/builder/types";
 
 interface GatePaletteProps {
+  qubitCount: QubitCount;
   onApplyPreset(preset: BuilderPreset): void;
   onClear(): void;
 }
 
 const DEFAULT_THETA = Math.PI / 2;
 
-export function GatePalette({ onApplyPreset, onClear }: GatePaletteProps) {
+export function GatePalette({
+  qubitCount,
+  onApplyPreset,
+  onClear,
+}: GatePaletteProps) {
   const [theta, setTheta] = useState<number>(DEFAULT_THETA);
   const thetaDeg = (theta * 180) / Math.PI;
+  const visiblePresets = BUILDER_PRESETS.filter(
+    (preset) => preset.qubitCount === qubitCount
+  );
 
   return (
     <aside className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white/85 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
@@ -40,7 +52,7 @@ export function GatePalette({ onApplyPreset, onClear }: GatePaletteProps) {
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
-        {ALL_GATES.map((gate) => (
+        {SINGLE_QUBIT_GATES.map((gate) => (
           <QuantumGateBlock
             key={gate.id}
             mode="palette"
@@ -49,6 +61,22 @@ export function GatePalette({ onApplyPreset, onClear }: GatePaletteProps) {
           />
         ))}
       </div>
+
+      {qubitCount === 2 ? (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            Two-qubit gates
+          </h3>
+          <div className="grid grid-cols-3 gap-2.5">
+            {TWO_QUBIT_GATES.map((gate) => (
+              <QuantumGateBlock key={gate.id} mode="palette" gateId={gate.id} />
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400">
+            Fixed orientation for this MVP: q0 controls q1.
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 px-3 py-3 dark:border-slate-700">
         <div className="flex items-center justify-between text-xs">
@@ -82,7 +110,7 @@ export function GatePalette({ onApplyPreset, onClear }: GatePaletteProps) {
           Presets
         </h3>
         <ul className="flex flex-col gap-1.5">
-          {BUILDER_PRESETS.map((preset) => (
+          {visiblePresets.map((preset) => (
             <li key={preset.id}>
               <button
                 type="button"

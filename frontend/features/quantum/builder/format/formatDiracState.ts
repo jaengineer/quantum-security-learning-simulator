@@ -1,5 +1,5 @@
 /**
- * Symbolic LaTeX renderer for single-qubit pure states.
+ * Symbolic LaTeX renderer for one- or two-qubit pure states.
  *
  * Produces canonical forms such as:
  *
@@ -21,8 +21,13 @@ import { clean } from "@/features/quantum/builder/math/complex";
 import type { Complex, QuantumState } from "@/features/quantum/builder/types";
 
 const EPS = 1e-9;
-const KET_0 = "\\lvert 0\\rangle";
-const KET_1 = "\\lvert 1\\rangle";
+const SINGLE_QUBIT_KETS = ["\\lvert 0\\rangle", "\\lvert 1\\rangle"] as const;
+const TWO_QUBIT_KETS = [
+  "\\lvert 00\\rangle",
+  "\\lvert 01\\rangle",
+  "\\lvert 10\\rangle",
+  "\\lvert 11\\rangle",
+] as const;
 
 function isZero(z: Complex): boolean {
   return Math.abs(z.re) < EPS && Math.abs(z.im) < EPS;
@@ -69,23 +74,25 @@ function termFor(amp: Complex, ket: string): string | null {
   return `\\left(${latex}\\right) ${ket}`;
 }
 
+function joinTerms(terms: string[]): string {
+  if (terms.length === 0) return "0";
+  return terms.reduce((acc, term) => {
+    if (!acc) return term;
+    if (term.startsWith("-")) return `${acc} - ${term.slice(1)}`;
+    return `${acc} + ${term}`;
+  }, "");
+}
+
 /**
- * Render a quantum state ``|ψ⟩ = α |0⟩ + β |1⟩`` as canonical LaTeX. The
- * output never contains numeric noise: amplitudes are cleaned through
- * ``formatComplexLatex`` and zero terms are dropped.
+ * Render ``|ψ⟩`` as canonical LaTeX. The output never contains numeric noise:
+ * amplitudes are cleaned through ``formatComplexLatex`` and zero terms are
+ * dropped.
  */
 export function formatDiracStateLatex(state: QuantumState): string {
-  const [alpha, beta] = state;
-  const term0 = termFor(alpha, KET_0);
-  const term1 = termFor(beta, KET_1);
+  const kets = state.length === 2 ? SINGLE_QUBIT_KETS : TWO_QUBIT_KETS;
+  const terms = state
+    .map((amp, index) => termFor(amp, kets[index]))
+    .filter((term): term is string => term !== null);
 
-  if (!term0 && !term1) return "0";
-  if (term0 && !term1) return term0;
-  if (!term0 && term1) return term1;
-
-  // Combine, turning a leading ``-`` on the second term into a subtraction.
-  if (term1!.startsWith("-")) {
-    return `${term0} - ${term1!.slice(1)}`;
-  }
-  return `${term0} + ${term1}`;
+  return joinTerms(terms);
 }
