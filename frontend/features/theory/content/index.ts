@@ -18,13 +18,17 @@ import type {
   TheoryConceptView,
 } from "@/features/theory/types";
 
+import { AMPLITUDE_AMPLIFICATION } from "@/features/theory/content/amplitude-amplification";
 import { DENSITY_MATRIX } from "@/features/theory/content/density-matrix";
+import { DIFFUSION_OPERATOR } from "@/features/theory/content/diffusion-operator";
 import { DIRAC_NOTATION } from "@/features/theory/content/dirac-notation";
 import { FIDELITY } from "@/features/theory/content/fidelity";
 import { GRAM_SCHMIDT } from "@/features/theory/content/gram-schmidt";
+import { GROVER_ALGORITHM } from "@/features/theory/content/grover-algorithm";
 import { HERMITIAN_MATRICES } from "@/features/theory/content/hermitian-matrices";
 import { INNER_PRODUCT } from "@/features/theory/content/inner-product";
 import { QUANTUM_ENTANGLEMENT } from "@/features/theory/content/quantum-entanglement";
+import { QUANTUM_ORACLE } from "@/features/theory/content/quantum-oracle";
 import { QUANTUM_TELEPORTATION } from "@/features/theory/content/quantum-teleportation";
 import { REDUCED_DENSITY_MATRIX } from "@/features/theory/content/reduced-density-matrix";
 import { SPECTRAL_THEOREM } from "@/features/theory/content/spectral-theorem";
@@ -42,6 +46,10 @@ export const THEORY_CONCEPTS_RAW: readonly TheoryConcept[] = [
   QUANTUM_ENTANGLEMENT,
   QUANTUM_TELEPORTATION,
   FIDELITY,
+  GROVER_ALGORITHM,
+  QUANTUM_ORACLE,
+  AMPLITUDE_AMPLIFICATION,
+  DIFFUSION_OPERATOR,
   GRAM_SCHMIDT,
   SPECTRAL_THEOREM,
   UNIT_ROOTS,
