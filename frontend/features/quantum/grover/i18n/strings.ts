@@ -1,0 +1,113 @@
+import type { LocalizedText } from "@/features/theory/i18n/types";
+
+export const GROVER_UI_STRINGS = {
+  eyebrow: {
+    en: "Quantum Algorithms Lab",
+    es: "Laboratorio de algoritmos cuánticos",
+  },
+  title: {
+    en: "Grover's Algorithm Lab",
+    es: "Laboratorio del algoritmo de Grover",
+  },
+  route_subtitle: {
+    en: "Mark one state in a four-state search space and watch a single Grover iteration turn phase information into amplitude amplification.",
+    es: "Marca un estado en un espacio de búsqueda de cuatro estados y observa cómo una iteración de Grover convierte información de fase en amplificación de amplitud.",
+  },
+  back: { en: "Back to experiments", es: "Volver a experimentos" },
+  language: { en: "Language", es: "Idioma" },
+  target_state: { en: "Target state", es: "Estado objetivo" },
+  current_target: { en: "Current target", es: "Objetivo actual" },
+  algorithm: { en: "Algorithm", es: "Algoritmo" },
+  stage_initial: { en: "Initial", es: "Inicial" },
+  stage_initial_short: { en: "|00⟩", es: "|00⟩" },
+  stage_initial_description: {
+    en: "Both qubits start in the computational basis state |00⟩.",
+    es: "Ambos qubits comienzan en el estado de la base computacional |00⟩.",
+  },
+  stage_superposition: { en: "Superposition", es: "Superposición" },
+  stage_superposition_short: { en: "H ⊗ H", es: "H ⊗ H" },
+  stage_superposition_description: {
+    en: "Hadamard gates place the four basis states in an equal positive superposition.",
+    es: "Las puertas Hadamard colocan los cuatro estados base en una superposición positiva uniforme.",
+  },
+  stage_oracle: { en: "Oracle", es: "Oráculo" },
+  stage_oracle_short: { en: "Mark target", es: "Marca objetivo" },
+  stage_oracle_description: {
+    en: "The oracle flips the sign of the marked amplitude. Probabilities do not change at this stage.",
+    es: "El oráculo invierte el signo de la amplitud marcada. Las probabilidades no cambian en esta etapa.",
+  },
+  stage_diffusion: { en: "Diffusion", es: "Difusión" },
+  stage_diffusion_short: { en: "Invert about mean", es: "Invertir sobre la media" },
+  stage_diffusion_description: {
+    en: "Diffusion reflects amplitudes about their mean, converting the oracle's phase mark into amplitude amplification.",
+    es: "La difusión refleja las amplitudes respecto a su media y convierte la marca de fase del oráculo en amplificación de amplitud.",
+  },
+  stage_measurement: { en: "Measurement", es: "Medida" },
+  stage_measurement_short: { en: "Probabilities", es: "Probabilidades" },
+  stage_measurement_description: {
+    en: "After one ideal Grover iteration with N = 4, the marked state has probability 100%.",
+    es: "Después de una iteración ideal de Grover con N = 4, el estado marcado tiene probabilidad 100%.",
+  },
+  previous_stage: { en: "Previous Stage", es: "Etapa anterior" },
+  next_stage: { en: "Next Stage", es: "Etapa siguiente" },
+  reset_lab: { en: "Reset Lab", es: "Reiniciar laboratorio" },
+  step_of: { en: "Step", es: "Paso" },
+  of: { en: "of", es: "de" },
+  grover_circuit: { en: "Grover Circuit", es: "Circuito de Grover" },
+  circuit_high_level: { en: "high level", es: "alto nivel" },
+  quantum_wire: { en: "Quantum wire", es: "Cable cuántico" },
+  q0_initial: { en: "q0 |0⟩", es: "q0 |0⟩" },
+  q1_initial: { en: "q1 |0⟩", es: "q1 |0⟩" },
+  hadamard_gate: { en: "Hadamard gate", es: "Puerta Hadamard" },
+  oracle_block: { en: "Oracle", es: "Oráculo" },
+  oracle_block_detail: { en: "mark", es: "marca" },
+  diffusion_block: { en: "Diffusion", es: "Difusión" },
+  diffusion_block_detail: { en: "2|s⟩⟨s| − I", es: "2|s⟩⟨s| − I" },
+  measurement_gate: { en: "Measurement", es: "Medida" },
+  amplitudes: { en: "Amplitudes", es: "Amplitudes" },
+  amplitudes_hint: {
+    en: "Signed real amplitudes. The oracle stage preserves the negative target amplitude.",
+    es: "Amplitudes reales con signo. La etapa del oráculo conserva la amplitud negativa del objetivo.",
+  },
+  positive_amplitude: { en: "Positive", es: "Positiva" },
+  negative_amplitude: { en: "Negative", es: "Negativa" },
+  probabilities: { en: "Probabilities", es: "Probabilidades" },
+  probabilities_hint: {
+    en: "Probability is the squared magnitude of the amplitude.",
+    es: "La probabilidad es el módulo al cuadrado de la amplitud.",
+  },
+  target_badge: { en: "TARGET", es: "OBJETIVO" },
+  state_vector: { en: "State vector", es: "Vector de estado" },
+  what_happens: { en: "What happens in this stage?", es: "¿Qué ocurre en esta etapa?" },
+  oracle_explanation_title: { en: "Oracle action", es: "Acción del oráculo" },
+  oracle_explanation: {
+    en: "The oracle does not directly increase probability. It flips the target phase: +0.5 becomes -0.5, and diffusion uses that sign difference.",
+    es: "El oráculo no aumenta directamente la probabilidad. Invierte la fase del objetivo: +0.5 pasa a -0.5, y la difusión usa esa diferencia de signo.",
+  },
+  diffusion_explanation_title: {
+    en: "Inversion about the mean",
+    es: "Inversión respecto a la media",
+  },
+  diffusion_explanation: {
+    en: "After the oracle, the mean amplitude is 0.25. Diffusion applies aᵢ′ = 2ā − aᵢ, so the marked amplitude becomes 1.0 and the others become 0.",
+    es: "Después del oráculo, la media de amplitud es 0.25. La difusión aplica aᵢ′ = 2ā − aᵢ, así que la amplitud marcada pasa a 1.0 y las demás a 0.",
+  },
+  mean_amplitude: { en: "Mean amplitude", es: "Amplitud media" },
+  formula: { en: "Formula", es: "Fórmula" },
+  complexity: { en: "Classical vs Quantum Search", es: "Búsqueda clásica vs cuántica" },
+  classical_search: { en: "Classical unstructured search", es: "Búsqueda clásica no estructurada" },
+  quantum_search: { en: "Grover quantum search", es: "Búsqueda cuántica de Grover" },
+  complexity_note: {
+    en: "This N = 4 example is pedagogical and does not represent real quantum speedup.",
+    es: "Este ejemplo con N = 4 es pedagógico y no representa una aceleración cuántica real.",
+  },
+  about_lab: { en: "About this lab", es: "Sobre este laboratorio" },
+  about_lab_body: {
+    en: "2 qubits, 4 states, one marked target and one ideal Grover iteration without noise or decoherence.",
+    es: "2 qubits, 4 estados, un objetivo marcado y una iteración ideal de Grover sin ruido ni decoherencia.",
+  },
+  legend: { en: "Legend", es: "Leyenda" },
+  current_stage: { en: "Current stage", es: "Etapa actual" },
+} as const satisfies Record<string, LocalizedText>;
+
+export type GroverUiStringKey = keyof typeof GROVER_UI_STRINGS;
