@@ -109,7 +109,7 @@ function WireDropZone({
 function ControlDot() {
   return (
     <span
-      className="block rounded-full bg-slate-900 shadow-sm dark:bg-violet-300"
+      className="relative z-[12] block rounded-full bg-slate-900 shadow-sm dark:bg-violet-300"
       style={{ height: CONTROL_DOT_SIZE, width: CONTROL_DOT_SIZE }}
     />
   );
@@ -124,7 +124,10 @@ function TargetSymbol({
 }) {
   if (variant === "swap") {
     return (
-      <span className="font-mono text-3xl font-semibold leading-none text-fuchsia-700 dark:text-fuchsia-100">
+      <span
+        className="relative z-[12] flex items-center justify-center rounded-full bg-white font-mono text-3xl font-semibold leading-none text-fuchsia-700 shadow-sm dark:bg-slate-900 dark:text-fuchsia-100"
+        style={{ height: TWO_QUBIT_SYMBOL_SIZE, width: TWO_QUBIT_SYMBOL_SIZE }}
+      >
         ×
       </span>
     );
@@ -133,7 +136,7 @@ function TargetSymbol({
   return (
     <span
       className={[
-        "flex items-center justify-center border-2 bg-white font-mono text-lg font-semibold shadow-sm dark:bg-slate-900",
+        "relative z-[12] flex items-center justify-center border-2 bg-white font-mono text-lg font-semibold shadow-sm dark:bg-slate-900",
         variant === "circle"
           ? "rounded-full border-slate-800 text-slate-800 dark:border-violet-300 dark:text-violet-100"
           : "rounded-xl border-fuchsia-400 text-fuchsia-700 dark:text-fuchsia-100",
@@ -187,27 +190,35 @@ function CanvasGateColumn({
 
   const thetaLabel = gateThetaLabel(gate);
   const singleGateCenter = centerForQubit(gate.targetQubit, q0Center, q1Center);
+  const singleGateStyle = {
+    height: GATE_SIZE,
+    width: GATE_SIZE,
+    left: (COLUMN_WIDTH - GATE_SIZE) / 2,
+    top: singleGateCenter - GATE_SIZE / 2,
+  };
   const singleGateFace = (
-    <span
-      className={[
-        "absolute flex flex-col items-center justify-center rounded-xl border text-base font-semibold shadow-sm",
-        style.block,
-        style.label,
-      ].join(" ")}
-      style={{
-        height: GATE_SIZE,
-        width: GATE_SIZE,
-        left: (COLUMN_WIDTH - GATE_SIZE) / 2,
-        top: singleGateCenter - GATE_SIZE / 2,
-      }}
-    >
-      {def.label}
-      {thetaLabel ? (
-        <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400">
-          {thetaLabel}
-        </span>
-      ) : null}
-    </span>
+    <>
+      <span
+        className="absolute z-[8] rounded-xl bg-white dark:bg-slate-900"
+        style={singleGateStyle}
+        aria-hidden
+      />
+      <span
+        className={[
+          "absolute z-[10] flex flex-col items-center justify-center rounded-xl border text-base font-semibold shadow-sm",
+          style.block,
+          style.label,
+        ].join(" ")}
+        style={singleGateStyle}
+      >
+        {def.label}
+        {thetaLabel ? (
+          <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            {thetaLabel}
+          </span>
+        ) : null}
+      </span>
+    </>
   );
 
   const controlCenter = centerForQubit(gate.controlQubit, q0Center, q1Center);
@@ -235,7 +246,7 @@ function CanvasGateColumn({
       style={inlineStyle}
       className={[
         "relative shrink-0 rounded-xl",
-        isDragging ? "z-10 opacity-80" : "",
+        isDragging ? "z-40 opacity-80" : "",
       ].join(" ")}
     >
       <button
@@ -243,17 +254,17 @@ function CanvasGateColumn({
         {...attributes}
         {...listeners}
         aria-label={`Reorder ${def.longName} gate`}
-        className="relative z-[2] h-full w-full cursor-grab active:cursor-grabbing focus:outline-none"
+        className="relative z-[10] h-full w-full cursor-grab active:cursor-grabbing focus:outline-none"
       >
         {qubitCount === 2 && gate.arity === 2 && typeof q1Center === "number" ? (
           <>
             <span
-              className="absolute left-1/2 w-0.5 -translate-x-1/2 bg-slate-700 dark:bg-slate-300"
+              className="absolute left-1/2 z-[8] w-0.5 -translate-x-1/2 bg-slate-700 dark:bg-slate-300"
               style={{ top: connectorTop, height: connectorHeight }}
               aria-hidden
             />
             <span
-              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              className="absolute z-[12] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
               style={{ left: COLUMN_WIDTH / 2, top: controlCenter }}
             >
               {gate.gateId === "SWAP" ? (
@@ -263,7 +274,7 @@ function CanvasGateColumn({
               )}
             </span>
             <span
-              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              className="absolute z-[12] flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
               style={{ left: COLUMN_WIDTH / 2, top: targetCenter }}
             >
               {gate.gateId === "CZ" ? (
@@ -284,7 +295,7 @@ function CanvasGateColumn({
         onClick={() => onRemove(gate.id)}
         aria-label={`Remove ${def.longName} gate`}
         title="Remove"
-        className="absolute right-2 z-[3] flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-xs text-slate-600 shadow hover:bg-rose-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+        className="absolute right-2 z-[30] flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-xs text-slate-600 shadow hover:bg-rose-500 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
         style={{ top: singleGateCenter - GATE_SIZE / 2 - 8 }}
       >
         {"\u00D7"}
@@ -329,7 +340,7 @@ export function CircuitCanvas({
               : "Time flows left \u2192 right. Drop single-qubit gates on q0 or q1; drop CNOT/CZ on the target wire."}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             Number of qubits
             <select
