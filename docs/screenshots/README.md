@@ -1,12 +1,15 @@
-# Screenshot placeholders
+# Placeholders de capturas
 
-Drop the following PNG files in this folder before submitting the TFM report
-or refreshing the documentation. The main README references them by these
-exact names:
+Añade los siguientes PNG en esta carpeta antes de entregar la memoria del TFM
+o refrescar la documentación. Captúralos a 1440 x 900 con el tema Tailwind por
+defecto (sistema claro) para mantener consistencia visual.
 
-- `landing.png` — Landing / Experiment Selector (4 tarjetas).
-- `superposition-result.png` — Workspace de Superposici\u00f3n con counts y barras.
-- `entanglement-result.png` — Workspace de Entrelazamiento con el Bell state \u03A6\u207A.
-
-Capture them at 1440 \u00d7 900 with the default Tailwind theme (system light)
-for visual consistency.
+- `home.png` — Home con experimentos MVP, herramientas transversales y laboratorios dedicados.
+- `builder-1q.png` — Quantum Circuit Builder en modo 1 qubit.
+- `builder-2q.png` — Quantum Circuit Builder en modo 2 qubits con panel de entrelazamiento.
+- `teleportation-lab.png` — Teleportation Lab con circuito, rama seleccionada y fidelidad.
+- `grover-superposition.png` — Grover Lab en la etapa Superposition.
+- `grover-oracle.png` — Grover Lab en la etapa Oracle con amplitud objetivo negativa.
+- `grover-diffusion.png` — Grover Lab en la etapa Diffusion.
+- `grover-measurement.png` — Grover Lab en la etapa Measurement.
+- `theory-grover.png` — Theory Lab con Grover, oráculo, amplificación de amplitud u operador de difusión.
