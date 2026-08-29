@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
-import { formatComplexLatex } from "@/features/quantum/builder/format/formatComplexLatex";
 import { formatDiracStateLatex } from "@/features/quantum/builder/format/formatDiracState";
 import { AmplitudeBars } from "@/features/quantum/grover/components/AmplitudeBars";
+import { DiffusionInsightPanel } from "@/features/quantum/grover/components/DiffusionInsightPanel";
 import { GroverCircuit } from "@/features/quantum/grover/components/GroverCircuit";
+import { MeasurementResultPanel } from "@/features/quantum/grover/components/MeasurementResultPanel";
 import { ProbabilityBars } from "@/features/quantum/grover/components/ProbabilityBars";
 import { GROVER_UI_STRINGS } from "@/features/quantum/grover/i18n/strings";
 import {
@@ -43,6 +44,47 @@ const STAGE_SHORT_KEYS: Record<GroverStageId, GroverStringKey> = {
   measurement: "stage_measurement_short",
 };
 
+type InsightKind =
+  | "initial"
+  | "superposition"
+  | "oracle"
+  | "diffusion"
+  | "measurement";
+
+interface GroverStagePresentation {
+  amplitudesDescriptionKey: GroverStringKey;
+  probabilitiesDescriptionKey: GroverStringKey;
+  insightKind: InsightKind;
+}
+
+const STAGE_PRESENTATION: Record<GroverStageId, GroverStagePresentation> = {
+  initial: {
+    amplitudesDescriptionKey: "amplitudes_hint_initial",
+    probabilitiesDescriptionKey: "probabilities_hint_initial",
+    insightKind: "initial",
+  },
+  superposition: {
+    amplitudesDescriptionKey: "amplitudes_hint_superposition",
+    probabilitiesDescriptionKey: "probabilities_hint_superposition",
+    insightKind: "superposition",
+  },
+  oracle: {
+    amplitudesDescriptionKey: "amplitudes_hint_oracle",
+    probabilitiesDescriptionKey: "probabilities_hint_oracle",
+    insightKind: "oracle",
+  },
+  diffusion: {
+    amplitudesDescriptionKey: "amplitudes_hint_diffusion",
+    probabilitiesDescriptionKey: "probabilities_hint_diffusion",
+    insightKind: "diffusion",
+  },
+  measurement: {
+    amplitudesDescriptionKey: "amplitudes_hint_measurement",
+    probabilitiesDescriptionKey: "probabilities_hint_measurement",
+    insightKind: "measurement",
+  },
+};
+
 function t(locale: Locale, key: GroverStringKey): string {
   return GROVER_UI_STRINGS[key][locale];
 }
@@ -63,6 +105,7 @@ export function GroverLab({
 
   const stages = useMemo(() => runGrover(target), [target]);
   const selectedStage = stages[clampStageIndex(stageIndex, stages)];
+  const presentation = STAGE_PRESENTATION[selectedStage.id];
 
   const selectTarget = (nextTarget: GroverBasisState) => {
     setTarget(nextTarget);
@@ -123,12 +166,17 @@ export function GroverLab({
                 {t(locale, "amplitudes")}
               </h2>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                {t(locale, "amplitudes_hint")}
+                {t(locale, presentation.amplitudesDescriptionKey)}
               </p>
             </div>
             <AmplitudeLegend locale={locale} />
           </div>
-          <AmplitudeBars stage={selectedStage} targetLabel={t(locale, "target_badge")} />
+          <AmplitudeBars
+            amplitudeHeader={t(locale, "amplitude_header")}
+            stage={selectedStage}
+            stateHeader={t(locale, "state_header")}
+            targetLabel={t(locale, "target_badge")}
+          />
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
@@ -136,16 +184,24 @@ export function GroverLab({
             {t(locale, "probabilities")}
           </h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {t(locale, "probabilities_hint")}
+            {t(locale, presentation.probabilitiesDescriptionKey)}
           </p>
           <div className="mt-4">
-            <ProbabilityBars stage={selectedStage} targetLabel={t(locale, "target_badge")} />
+            <ProbabilityBars
+              ariaLabelPrefix={t(locale, "probability_aria")}
+              stage={selectedStage}
+              targetLabel={t(locale, "target_badge")}
+            />
           </div>
         </section>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
-        <DiffusionPanel locale={locale} stage={selectedStage} />
+        <StageInsightPanel
+          locale={locale}
+          presentation={presentation}
+          stage={selectedStage}
+        />
         <ComplexityPanel locale={locale} />
       </div>
 
@@ -179,19 +235,21 @@ export function GroverLab({
               {t(locale, "reset_lab")}
             </button>
             <div className="flex gap-3">
-              <StageButton
-                disabled={selectedStage.index === 0}
-                label={t(locale, "previous_stage")}
-                onClick={() => setStageIndex((index) => Math.max(0, index - 1))}
-              />
-              <StageButton
-                disabled={selectedStage.index === stages.length - 1}
-                label={t(locale, "next_stage")}
-                onClick={() =>
-                  setStageIndex((index) => Math.min(stages.length - 1, index + 1))
-                }
-                primary
-              />
+              {selectedStage.index > 0 ? (
+                <StageButton
+                  label={t(locale, "previous_stage")}
+                  onClick={() => setStageIndex((index) => Math.max(0, index - 1))}
+                />
+              ) : null}
+              {selectedStage.index < stages.length - 1 ? (
+                <StageButton
+                  label={t(locale, "next_stage")}
+                  onClick={() =>
+                    setStageIndex((index) => Math.min(stages.length - 1, index + 1))
+                  }
+                  primary
+                />
+              ) : null}
             </div>
           </div>
         </section>
@@ -324,60 +382,129 @@ function StageExplanation({
           />
         </div>
       ) : null}
-      {stage.id === "oracle" ? (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-500/10 p-3 dark:border-amber-500/40">
-          <p className="text-xs font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-300">
-            {t(locale, "oracle_explanation_title")}
-          </p>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            {t(locale, "oracle_explanation")}
-          </p>
-        </div>
-      ) : null}
     </section>
   );
 }
 
-function DiffusionPanel({
+function StageInsightPanel({
+  locale,
+  presentation,
+  stage,
+}: {
+  locale: Locale;
+  presentation: GroverStagePresentation;
+  stage: GroverStageResult;
+}) {
+  if (presentation.insightKind === "diffusion") {
+    return <DiffusionInsightPanel locale={locale} stage={stage} />;
+  }
+
+  if (presentation.insightKind === "measurement") {
+    return <MeasurementResultPanel locale={locale} stage={stage} />;
+  }
+
+  if (presentation.insightKind === "oracle") {
+    return <OracleActionPanel locale={locale} stage={stage} />;
+  }
+
+  return <StageLearningPanel locale={locale} stage={stage} />;
+}
+
+function StageLearningPanel({
   locale,
   stage,
 }: {
   locale: Locale;
   stage: GroverStageResult;
 }) {
-  const mean = stage.diffusionMean;
-
   return (
     <section className="rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
       <h2 className="text-sm font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-300">
-        {t(locale, "diffusion_explanation_title")}
+        {t(locale, "what_happens")}
       </h2>
       <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-        {t(locale, "diffusion_explanation")}
+        {t(locale, stage.descriptionKey)}
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-            {t(locale, "mean_amplitude")}
+      {stage.operatorLatex ? (
+        <div className="mt-4 rounded-xl border border-violet-200 bg-violet-500/5 p-3 dark:border-violet-500/40">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-700 dark:text-violet-300">
+            {t(locale, "formula")}
           </p>
-          <p className="mt-2 font-mono text-lg font-semibold text-slate-900 dark:text-slate-100">
-            {mean ? (
-              <QuantumFormula expression={formatComplexLatex(mean)} />
-            ) : (
-              <span className="text-slate-400">—</span>
-            )}
-          </p>
-        </div>
-        <div className="rounded-xl border border-violet-200 bg-violet-500/5 p-3 dark:border-violet-500/40">
           <QuantumFormula
-            expression={"a_i'=2\\bar{a}-a_i"}
+            expression={stage.operatorLatex}
             displayMode="block"
             compact
-            ariaLabel="Diffusion rule"
+            ariaLabel="Grover stage operator"
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function OracleActionPanel({
+  locale,
+  stage,
+}: {
+  locale: Locale;
+  stage: GroverStageResult;
+}) {
+  return (
+    <section className="rounded-2xl border border-amber-200 bg-white/85 p-5 shadow-sm dark:border-amber-500/40 dark:bg-slate-900/55">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-300">
+        {t(locale, "oracle_explanation_title")}
+      </h2>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        {t(locale, "oracle_explanation")}
+      </p>
+      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-500/10 p-4 dark:border-amber-500/40">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-300">
+          {t(locale, "target_badge")} |{stage.target}⟩
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <OracleTransition
+            after="-0.50"
+            before="+0.50"
+            label={t(locale, "amplitude_header")}
+            note={t(locale, "phase_flip")}
+          />
+          <OracleTransition
+            after="25%"
+            before="25%"
+            label={t(locale, "probabilities")}
+            note={t(locale, "unchanged")}
           />
         </div>
       </div>
     </section>
+  );
+}
+
+function OracleTransition({
+  after,
+  before,
+  label,
+  note,
+}: {
+  after: string;
+  before: string;
+  label: string;
+  note: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/70 bg-white p-3 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        {label}
+      </p>
+      <div className="mt-2 flex items-center justify-center gap-3 font-mono text-lg font-semibold">
+        <span className="text-emerald-600 dark:text-emerald-300">{before}</span>
+        <span className="text-slate-400">→</span>
+        <span className={after.startsWith("-") ? "text-rose-600 dark:text-rose-300" : "text-slate-700 dark:text-slate-200"}>
+          {after}
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{note}</p>
+    </div>
   );
 }
 
@@ -460,12 +587,10 @@ function AmplitudeLegend({ locale }: { locale: Locale }) {
 }
 
 function StageButton({
-  disabled,
   label,
   onClick,
   primary = false,
 }: {
-  disabled: boolean;
   label: string;
   onClick: () => void;
   primary?: boolean;
@@ -473,10 +598,9 @@ function StageButton({
   return (
     <button
       type="button"
-      disabled={disabled}
       onClick={onClick}
       className={[
-        "rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50",
+        "rounded-xl px-4 py-2 text-sm font-semibold transition",
         primary
           ? "bg-violet-600 text-white hover:bg-violet-500"
           : "border border-slate-200 bg-white text-slate-700 hover:border-violet-300 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",

@@ -13,6 +13,7 @@ import type {
 } from "@/features/quantum/builder/types";
 
 export type GroverBasisState = "00" | "01" | "10" | "11";
+export type GroverMeasurementBit = "0" | "1";
 export type GroverStageId =
   | "initial"
   | "superposition"
@@ -31,6 +32,8 @@ export interface GroverStageResult {
   oracleMatrix?: Mat4;
   diffusionBefore?: TwoQubitState;
   diffusionMean?: Complex;
+  measurementOutcome?: GroverBasisState;
+  measurementBits?: readonly [GroverMeasurementBit, GroverMeasurementBit];
 }
 
 export type GroverStageDescriptionKey =
@@ -84,6 +87,12 @@ export function targetIndex(target: GroverBasisState): 0 | 1 | 2 | 3 {
 
 function matrixEntry(value: number): Complex {
   return c(value, 0);
+}
+
+function measurementBitsFor(
+  target: GroverBasisState
+): readonly [GroverMeasurementBit, GroverMeasurementBit] {
+  return [target[0] as GroverMeasurementBit, target[1] as GroverMeasurementBit];
 }
 
 export function createOracleMatrix(target: GroverBasisState): Mat4 {
@@ -177,6 +186,9 @@ export function runGrover(target: GroverBasisState): readonly GroverStageResult[
       diffusionMean: mean,
       operatorLatex: "D=2\\lvert s\\rangle\\langle s\\rvert-I",
     }),
-    stage("measurement", 4, target, diffusion),
+    stage("measurement", 4, target, diffusion, {
+      measurementOutcome: target,
+      measurementBits: measurementBitsFor(target),
+    }),
   ];
 }

@@ -21,14 +21,14 @@ export const GROVER_UI_STRINGS = {
   stage_initial: { en: "Initial", es: "Inicial" },
   stage_initial_short: { en: "|00⟩", es: "|00⟩" },
   stage_initial_description: {
-    en: "Both qubits start in the computational basis state |00⟩.",
-    es: "Ambos qubits comienzan en el estado de la base computacional |00⟩.",
+    en: "The two-qubit register starts in the computational basis state |00⟩. Before any gates are applied, all probability is concentrated in this state.",
+    es: "El registro de dos qubits comienza en el estado |00⟩ de la base computacional. Antes de aplicar ninguna puerta, toda la probabilidad está concentrada en este estado.",
   },
   stage_superposition: { en: "Superposition", es: "Superposición" },
   stage_superposition_short: { en: "H ⊗ H", es: "H ⊗ H" },
   stage_superposition_description: {
-    en: "Hadamard gates place the four basis states in an equal positive superposition.",
-    es: "Las puertas Hadamard colocan los cuatro estados base en una superposición positiva uniforme.",
+    en: "The Hadamard gates create an equal superposition of all four basis states. The selected target is highlighted for reference, but it has not been marked by the oracle yet.",
+    es: "Las puertas Hadamard crean una superposición uniforme de los cuatro estados de la base. El objetivo seleccionado se resalta como referencia, pero el oráculo todavía no lo ha marcado.",
   },
   stage_oracle: { en: "Oracle", es: "Oráculo" },
   stage_oracle_short: { en: "Mark target", es: "Marca objetivo" },
@@ -45,8 +45,8 @@ export const GROVER_UI_STRINGS = {
   stage_measurement: { en: "Measurement", es: "Medida" },
   stage_measurement_short: { en: "Probabilities", es: "Probabilidades" },
   stage_measurement_description: {
-    en: "After one ideal Grover iteration with N = 4, the marked state has probability 100%.",
-    es: "Después de una iteración ideal de Grover con N = 4, el estado marcado tiene probabilidad 100%.",
+    en: "After diffusion, all amplitude is concentrated in the target state. Measuring the register returns the target bitstring with probability 100% in this ideal example.",
+    es: "Después de la difusión, toda la amplitud está concentrada en el estado objetivo. Al medir el registro se obtiene el bitstring objetivo con probabilidad del 100 % en este ejemplo ideal.",
   },
   previous_stage: { en: "Previous Stage", es: "Etapa anterior" },
   next_stage: { en: "Next Stage", es: "Etapa siguiente" },
@@ -65,17 +65,52 @@ export const GROVER_UI_STRINGS = {
   diffusion_block_detail: { en: "2|s⟩⟨s| − I", es: "2|s⟩⟨s| − I" },
   measurement_gate: { en: "Measurement", es: "Medida" },
   amplitudes: { en: "Amplitudes", es: "Amplitudes" },
-  amplitudes_hint: {
-    en: "Signed real amplitudes. The oracle stage preserves the negative target amplitude.",
-    es: "Amplitudes reales con signo. La etapa del oráculo conserva la amplitud negativa del objetivo.",
+  amplitudes_hint_initial: {
+    en: "The register begins entirely in |00⟩, so only that basis state has amplitude.",
+    es: "El registro empieza completamente en |00⟩, así que solo ese estado base tiene amplitud.",
+  },
+  amplitudes_hint_superposition: {
+    en: "All four basis states have the same positive amplitude +0.50.",
+    es: "Los cuatro estados de la base tienen la misma amplitud positiva +0,50.",
+  },
+  amplitudes_hint_oracle: {
+    en: "The oracle preserves magnitude but flips the marked amplitude from +0.50 to -0.50.",
+    es: "El oráculo conserva la magnitud pero cambia la amplitud marcada de +0,50 a -0,50.",
+  },
+  amplitudes_hint_diffusion: {
+    en: "Diffusion reflects every amplitude about the mean. The marked state's negative amplitude becomes +1.00, while the other amplitudes become 0.",
+    es: "La difusión refleja cada amplitud respecto a la media. La amplitud negativa del estado marcado pasa a +1,00, mientras que las demás pasan a 0.",
+  },
+  amplitudes_hint_measurement: {
+    en: "After diffusion, all amplitude is concentrated in the target state before measurement.",
+    es: "Después de la difusión, toda la amplitud está concentrada en el estado objetivo antes de medir.",
   },
   positive_amplitude: { en: "Positive", es: "Positiva" },
   negative_amplitude: { en: "Negative", es: "Negativa" },
   probabilities: { en: "Probabilities", es: "Probabilidades" },
-  probabilities_hint: {
-    en: "Probability is the squared magnitude of the amplitude.",
-    es: "La probabilidad es el módulo al cuadrado de la amplitud.",
+  probabilities_hint_initial: {
+    en: "Because the state is |00⟩, P(|00⟩) = 100% and all other outcomes have probability 0%.",
+    es: "Como el estado es |00⟩, P(|00⟩) = 100 % y los demás resultados tienen probabilidad 0 %.",
   },
+  probabilities_hint_superposition: {
+    en: "Equal amplitudes produce equal measurement probabilities: each state has 25%.",
+    es: "Amplitudes iguales producen probabilidades de medida iguales: cada estado tiene 25 %.",
+  },
+  probabilities_hint_oracle: {
+    en: "The target phase changed, but probability is squared magnitude, so all states remain at 25%.",
+    es: "La fase del objetivo ha cambiado, pero la probabilidad es el módulo al cuadrado, así que todos los estados siguen en 25 %.",
+  },
+  probabilities_hint_diffusion: {
+    en: "After diffusion, the marked state contains 100% of the measurement probability in this ideal N = 4 example.",
+    es: "Después de la difusión, el estado marcado concentra el 100 % de la probabilidad de medida en este ejemplo ideal con N = 4.",
+  },
+  probabilities_hint_measurement: {
+    en: "The state entering measurement is already the target, so the classical result is deterministic.",
+    es: "El estado que entra en la medida ya es el objetivo, así que el resultado clásico es determinista.",
+  },
+  state_header: { en: "State", es: "Estado" },
+  amplitude_header: { en: "Amplitude", es: "Amplitud" },
+  probability_aria: { en: "Probability of", es: "Probabilidad de" },
   target_badge: { en: "TARGET", es: "OBJETIVO" },
   state_vector: { en: "State vector", es: "Vector de estado" },
   what_happens: { en: "What happens in this stage?", es: "¿Qué ocurre en esta etapa?" },
@@ -84,6 +119,8 @@ export const GROVER_UI_STRINGS = {
     en: "The oracle does not directly increase probability. It flips the target phase: +0.5 becomes -0.5, and diffusion uses that sign difference.",
     es: "El oráculo no aumenta directamente la probabilidad. Invierte la fase del objetivo: +0.5 pasa a -0.5, y la difusión usa esa diferencia de signo.",
   },
+  phase_flip: { en: "phase flip", es: "cambio de fase" },
+  unchanged: { en: "unchanged", es: "sin cambios" },
   diffusion_explanation_title: {
     en: "Inversion about the mean",
     es: "Inversión respecto a la media",
@@ -92,7 +129,32 @@ export const GROVER_UI_STRINGS = {
     en: "After the oracle, the mean amplitude is 0.25. Diffusion applies aᵢ′ = 2ā − aᵢ, so the marked amplitude becomes 1.0 and the others become 0.",
     es: "Después del oráculo, la media de amplitud es 0.25. La difusión aplica aᵢ′ = 2ā − aᵢ, así que la amplitud marcada pasa a 1.0 y las demás a 0.",
   },
+  before_diffusion: { en: "Before diffusion", es: "Antes de difusión" },
+  after_diffusion: { en: "After diffusion", es: "Después de difusión" },
+  target_transition: { en: "Target", es: "Objetivo" },
+  other_states_transition: { en: "Other states", es: "Otros estados" },
+  target_formula: {
+    en: "2(0.25) - (-0.50) = 1.00",
+    es: "2(0,25) - (-0,50) = 1,00",
+  },
+  other_formula: {
+    en: "2(0.25) - 0.50 = 0.00",
+    es: "2(0,25) - 0,50 = 0,00",
+  },
   mean_amplitude: { en: "Mean amplitude", es: "Amplitud media" },
+  measurement_result: { en: "Measurement Result", es: "Resultado de medida" },
+  quantum_state_before_measurement: {
+    en: "Quantum state before measurement",
+    es: "Estado cuántico antes de medir",
+  },
+  measurement_step: { en: "Measurement", es: "Medida" },
+  q0_classical_bit: { en: "q0 classical bit", es: "bit clásico q0" },
+  q1_classical_bit: { en: "q1 classical bit", es: "bit clásico q1" },
+  classical_bitstring: { en: "Classical bitstring", es: "Bitstring clásico" },
+  success_probability: { en: "Success probability", es: "Probabilidad de éxito" },
+  measured: { en: "Measured", es: "Medido" },
+  target_found: { en: "Target found", es: "Objetivo encontrado" },
+  search_complete: { en: "Grover search complete", es: "Búsqueda de Grover completada" },
   formula: { en: "Formula", es: "Fórmula" },
   complexity: { en: "Classical vs Quantum Search", es: "Búsqueda clásica vs cuántica" },
   classical_search: { en: "Classical unstructured search", es: "Búsqueda clásica no estructurada" },
@@ -108,6 +170,8 @@ export const GROVER_UI_STRINGS = {
   },
   legend: { en: "Legend", es: "Leyenda" },
   current_stage: { en: "Current stage", es: "Etapa actual" },
+  applied_stage: { en: "Applied", es: "Aplicada" },
+  future_stage: { en: "Upcoming", es: "Pendiente" },
 } as const satisfies Record<string, LocalizedText>;
 
 export type GroverUiStringKey = keyof typeof GROVER_UI_STRINGS;

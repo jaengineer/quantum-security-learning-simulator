@@ -4,6 +4,7 @@ import type { Locale } from "@/features/theory/i18n/types";
 
 type GroverStringKey = keyof typeof GROVER_UI_STRINGS;
 type GroverWire = "q0" | "q1";
+type OperationStatus = "applied" | "current" | "future";
 
 interface GroverCircuitProps {
   locale: Locale;
@@ -37,6 +38,40 @@ function columnX(index: number): number {
   return index * COLUMN_WIDTH + COLUMN_WIDTH / 2;
 }
 
+function operationStatus(stageIndex: number, columnIndex: number): OperationStatus {
+  if (columnIndex < stageIndex) return "applied";
+  if (columnIndex === stageIndex) return "current";
+  return "future";
+}
+
+function purpleOperationClasses(status: OperationStatus): string {
+  if (status === "current") {
+    return "border-violet-600 bg-violet-600 text-white shadow-violet-500/25";
+  }
+
+  if (status === "applied") {
+    return "border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-200";
+  }
+
+  return "border-slate-300 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400";
+}
+
+function semanticBlockClasses(kind: "oracle" | "diffusion", status: OperationStatus): string {
+  if (status === "future") {
+    return "border-slate-300 bg-white text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400";
+  }
+
+  if (kind === "oracle") {
+    return status === "current"
+      ? "border-amber-500 bg-amber-500 text-slate-950 shadow-amber-500/25 dark:border-amber-300 dark:bg-amber-400 dark:text-slate-950"
+      : "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200";
+  }
+
+  return status === "current"
+    ? "border-emerald-500 bg-emerald-500 text-slate-950 shadow-emerald-500/25 dark:border-emerald-300 dark:bg-emerald-400 dark:text-slate-950"
+    : "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-200";
+}
+
 export function GroverCircuit({ locale, stage }: GroverCircuitProps) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-slate-50/70 p-4 quantum-thin-scroll dark:border-slate-800 dark:bg-slate-950/40">
@@ -54,9 +89,11 @@ export function GroverCircuit({ locale, stage }: GroverCircuitProps) {
               key={column.id}
               className={[
                 "absolute top-0 flex w-24 -translate-x-1/2 justify-center text-center text-[11px] font-semibold uppercase tracking-wider",
-                column.id === stage.id
+                operationStatus(stage.index, index) === "current"
                   ? "text-violet-700 dark:text-violet-200"
-                  : "text-slate-500 dark:text-slate-400",
+                  : operationStatus(stage.index, index) === "applied"
+                    ? "text-slate-700 dark:text-slate-200"
+                    : "text-slate-400 dark:text-slate-500",
               ].join(" ")}
               style={{ left: columnX(index) }}
             >
@@ -75,24 +112,26 @@ export function GroverCircuit({ locale, stage }: GroverCircuitProps) {
           style={{ height: WIRE_AREA_HEIGHT, width: TIMELINE_WIDTH }}
         >
           <WireLayer />
-          <Gate label="|0⟩" muted x={columnX(0)} y={WIRE_Y.q0} />
-          <Gate label="|0⟩" muted x={columnX(0)} y={WIRE_Y.q1} />
-          <Gate active={stage.id === "superposition"} label="H" x={columnX(1)} y={WIRE_Y.q0} />
-          <Gate active={stage.id === "superposition"} label="H" x={columnX(1)} y={WIRE_Y.q1} />
+          <Gate label="|0⟩" status={operationStatus(stage.index, 0)} x={columnX(0)} y={WIRE_Y.q0} />
+          <Gate label="|0⟩" status={operationStatus(stage.index, 0)} x={columnX(0)} y={WIRE_Y.q1} />
+          <Gate label="H" status={operationStatus(stage.index, 1)} x={columnX(1)} y={WIRE_Y.q0} />
+          <Gate label="H" status={operationStatus(stage.index, 1)} x={columnX(1)} y={WIRE_Y.q1} />
           <TwoQubitBlock
-            active={stage.id === "oracle"}
             detail={`${t(locale, "oracle_block_detail")} |${stage.target}⟩`}
+            kind="oracle"
             label={t(locale, "oracle_block")}
+            status={operationStatus(stage.index, 2)}
             x={columnX(2)}
           />
           <TwoQubitBlock
-            active={stage.id === "diffusion"}
             detail={t(locale, "diffusion_block_detail")}
+            kind="diffusion"
             label={t(locale, "diffusion_block")}
+            status={operationStatus(stage.index, 3)}
             x={columnX(3)}
           />
-          <Measurement active={stage.id === "measurement"} x={columnX(4)} y={WIRE_Y.q0} />
-          <Measurement active={stage.id === "measurement"} x={columnX(4)} y={WIRE_Y.q1} />
+          <Measurement status={operationStatus(stage.index, 4)} x={columnX(4)} y={WIRE_Y.q0} />
+          <Measurement status={operationStatus(stage.index, 4)} x={columnX(4)} y={WIRE_Y.q1} />
         </div>
       </div>
     </div>
@@ -125,27 +164,21 @@ function WireLayer() {
 }
 
 function Gate({
-  active = false,
   label,
-  muted = false,
+  status,
   x,
   y,
 }: {
-  active?: boolean;
   label: string;
-  muted?: boolean;
+  status: OperationStatus;
   x: number;
   y: number;
 }) {
   return (
     <span
       className={[
-        "absolute z-10 flex h-10 min-w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-2 font-mono text-sm font-semibold shadow-sm transition",
-        active
-          ? "border-violet-500 bg-violet-500 text-white shadow-violet-500/20"
-          : muted
-            ? "border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
-            : "border-violet-300 bg-white text-slate-900 dark:border-violet-500/60 dark:bg-slate-900 dark:text-slate-100",
+        "absolute z-20 flex h-10 min-w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-2 font-mono text-sm font-semibold shadow-sm transition",
+        purpleOperationClasses(status),
       ].join(" ")}
       style={{ left: x, top: y }}
     >
@@ -155,14 +188,16 @@ function Gate({
 }
 
 function TwoQubitBlock({
-  active,
   detail,
+  kind,
   label,
+  status,
   x,
 }: {
-  active: boolean;
   detail: string;
+  kind: "oracle" | "diffusion";
   label: string;
+  status: OperationStatus;
   x: number;
 }) {
   const top = WIRE_Y.q0;
@@ -171,10 +206,8 @@ function TwoQubitBlock({
   return (
     <div
       className={[
-        "absolute z-10 flex w-28 -translate-x-1/2 flex-col items-center justify-center rounded-xl border px-3 text-center shadow-sm transition",
-        active
-          ? "border-violet-500 bg-violet-500 text-white shadow-violet-500/20"
-          : "border-amber-300 bg-amber-50 text-slate-900 dark:border-amber-500/60 dark:bg-amber-500/10 dark:text-slate-100",
+        "absolute z-20 flex w-28 -translate-x-1/2 flex-col items-center justify-center rounded-xl border px-3 text-center shadow-sm transition",
+        semanticBlockClasses(kind, status),
       ].join(" ")}
       style={{ left: x, top: top - 18, height: height + 36 }}
     >
@@ -184,14 +217,12 @@ function TwoQubitBlock({
   );
 }
 
-function Measurement({ active, x, y }: { active: boolean; x: number; y: number }) {
+function Measurement({ status, x, y }: { status: OperationStatus; x: number; y: number }) {
   return (
     <span
       className={[
-        "absolute z-10 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border bg-white font-mono text-lg font-semibold shadow-sm transition dark:bg-slate-900",
-        active
-          ? "border-violet-500 text-violet-700 dark:text-violet-200"
-          : "border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200",
+        "absolute z-20 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border font-mono text-lg font-semibold shadow-sm transition",
+        purpleOperationClasses(status),
       ].join(" ")}
       style={{ left: x, top: y }}
       aria-label="Measurement"

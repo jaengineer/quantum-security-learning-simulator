@@ -2,11 +2,16 @@ import type { GroverStageResult } from "@/features/quantum/grover/math/grover";
 import { GROVER_TARGETS } from "@/features/quantum/grover/math/grover";
 
 interface ProbabilityBarsProps {
+  ariaLabelPrefix: string;
   stage: GroverStageResult;
   targetLabel: string;
 }
 
-export function ProbabilityBars({ stage, targetLabel }: ProbabilityBarsProps) {
+export function ProbabilityBars({
+  ariaLabelPrefix,
+  stage,
+  targetLabel,
+}: ProbabilityBarsProps) {
   return (
     <ul className="flex flex-col gap-3">
       {GROVER_TARGETS.map((basis) => {
@@ -41,7 +46,7 @@ export function ProbabilityBars({ stage, targetLabel }: ProbabilityBarsProps) {
             </div>
             <div
               role="progressbar"
-              aria-label={`Probability of |${basis}>`}
+              aria-label={`${ariaLabelPrefix} |${basis}>`}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Number(percent.toFixed(2))}
