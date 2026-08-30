@@ -9,7 +9,10 @@ import { Card } from "@/components/ui/Card";
 import { ExperimentBriefing } from "@/features/quantum/components/ExperimentBriefing";
 import { ExperimentConfiguration } from "@/features/quantum/components/ExperimentConfiguration";
 import { SimulationResults } from "@/features/quantum/components/SimulationResults";
+import { HOME_COPY } from "@/features/quantum/experiments/i18n/strings";
 import { formatStableInteger } from "@/features/quantum/utils/format";
+import { getLocalizedText } from "@/features/theory/i18n/helpers";
+import type { Locale } from "@/features/theory/i18n/types";
 import type {
   BellStateName,
   QuantumExperiment,
@@ -21,6 +24,8 @@ interface SimulationWorkspaceProps {
   experiment: QuantumExperiment;
   onBack?: () => void;
   backHref?: string;
+  locale?: Locale;
+  onLocaleChange?: (locale: Locale) => void;
 }
 
 function resolveInitialQubits(experiment: QuantumExperiment): QubitCount {
@@ -37,6 +42,8 @@ export function SimulationWorkspace({
   experiment,
   onBack,
   backHref,
+  locale = "en",
+  onLocaleChange,
 }: SimulationWorkspaceProps) {
   const [qubitCount, setQubitCount] = useState<QubitCount>(() =>
     resolveInitialQubits(experiment)
@@ -90,9 +97,26 @@ export function SimulationWorkspace({
             Back to experiments
           </a>
         )}
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-          {experiment.subtitle}
-        </span>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            {experiment.subtitle}
+          </span>
+          {onLocaleChange ? (
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              {getLocalizedText(HOME_COPY.language, locale)}
+              <select
+                value={locale}
+                onChange={(event) =>
+                  onLocaleChange(event.target.value as Locale)
+                }
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs normal-case tracking-normal text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
+            </label>
+          ) : null}
+        </div>
       </nav>
 
       <header className="flex flex-col gap-2">
@@ -204,6 +228,7 @@ export function SimulationWorkspace({
                     result={result}
                     isRunning={isLoading}
                     bellState={bellState}
+                    locale={locale}
                   />
                 </Card>
               </motion.div>

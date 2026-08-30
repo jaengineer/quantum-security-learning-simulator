@@ -10,6 +10,7 @@ import type { Locale } from "@/features/theory/i18n/types";
 
 export default function HomePage() {
   const [locale, setLocale] = useState<Locale>("en");
+  const showBackendEndpoint = process.env.NODE_ENV === "development";
 
   return (
     <LearnableTooltipProvider>
@@ -23,10 +24,12 @@ export default function HomePage() {
           <ExperimentSelector locale={locale} onLocaleChange={setLocale} />
         </motion.div>
 
-        <footer className="mt-auto pt-6 text-xs text-slate-500 dark:text-slate-400">
-          Backend endpoint:{" "}
-          <code>{process.env.NEXT_PUBLIC_QUANTUM_API_URL ?? "(not set)"}</code>
-        </footer>
+        {showBackendEndpoint ? (
+          <footer className="mt-auto pt-6 text-xs text-slate-500 dark:text-slate-400">
+            Backend endpoint:{" "}
+            <code>{process.env.NEXT_PUBLIC_QUANTUM_API_URL ?? "(not set)"}</code>
+          </footer>
+        ) : null}
       </main>
 
       <GlossaryFab />

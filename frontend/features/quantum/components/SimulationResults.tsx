@@ -8,8 +8,11 @@ import { classifyEntanglement, concurrence } from "@/features/quantum/builder/ma
 import { EntanglementComparisonPanel } from "@/features/quantum/components/EntanglementComparisonPanel";
 import { ProbabilityBars } from "@/features/quantum/components/ProbabilityBars";
 import { QuantumStateEvolution } from "@/features/quantum/components/QuantumStateEvolution";
+import { getFoundationNextStep } from "@/features/quantum/data/foundationNextSteps";
 import { getBellStateDefinition } from "@/features/quantum/data/bellStates";
 import { formatStableInteger } from "@/features/quantum/utils/format";
+import { getLocalizedText } from "@/features/theory/i18n/helpers";
+import type { Locale } from "@/features/theory/i18n/types";
 import type {
   BellStateName,
   ExperimentType,
@@ -23,6 +26,7 @@ interface SimulationResultsProps {
   isRunning?: boolean;
   visualMode?: CircuitVisualMode;
   bellState?: BellStateName;
+  locale?: Locale;
 }
 
 function resolveVariant(
@@ -115,12 +119,49 @@ function EntanglementInterpretation({
   );
 }
 
+function FoundationNextStepCard({
+  experimentId,
+  locale,
+}: {
+  experimentId: ExperimentType;
+  locale: Locale;
+}) {
+  const nextStep = getFoundationNextStep(experimentId);
+  if (!nextStep) return null;
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/50">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-300">
+            {getLocalizedText(nextStep.eyebrow, locale)}
+          </p>
+          <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            {getLocalizedText(nextStep.title, locale)}
+          </h3>
+          <p className="max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+            {getLocalizedText(nextStep.description, locale)}
+          </p>
+        </div>
+        <a
+          href={nextStep.href}
+          className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-600 dark:bg-violet-600 dark:hover:bg-violet-500 sm:self-auto"
+        >
+          {getLocalizedText(nextStep.cta, locale)}
+          <span aria-hidden>→</span>
+        </a>
+      </div>
+    </section>
+  );
+}
+
 export function SimulationResults({
   experiment,
   result,
   isRunning = false,
   visualMode = "advanced",
   bellState,
+  locale = "en",
 }: SimulationResultsProps) {
   const variant = resolveVariant(experiment.id, result);
   const initialState = result.initial_state ?? "0";
@@ -232,6 +273,8 @@ export function SimulationResults({
           <EntanglementComparisonPanel bellState={resolvedBellState} />
         </section>
       ) : null}
+
+      <FoundationNextStepCard experimentId={experiment.id} locale={locale} />
     </div>
   );
 }
