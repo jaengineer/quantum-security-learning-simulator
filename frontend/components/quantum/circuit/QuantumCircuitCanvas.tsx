@@ -20,7 +20,7 @@ import {
 import { useMemo } from "react";
 
 import { CircuitDiagram } from "@/features/quantum/components/CircuitDiagram";
-import type { InitialState } from "@/features/quantum/types";
+import type { BellStateName, InitialState } from "@/features/quantum/types";
 
 import { QuantumCircuitLegend } from "./QuantumCircuitLegend";
 import {
@@ -59,6 +59,7 @@ export type CircuitVisualMode = "simple" | "advanced";
 export interface QuantumCircuitCanvasProps {
   variant: CircuitVariant;
   initialState?: InitialState | string;
+  bellState?: BellStateName;
   isRunning?: boolean;
   visualMode?: CircuitVisualMode;
 }
@@ -66,13 +67,14 @@ export interface QuantumCircuitCanvasProps {
 function CanvasInner({
   variant,
   initialState = "0",
+  bellState = "phi_plus",
   isRunning = false,
 }: Required<Omit<QuantumCircuitCanvasProps, "visualMode">>) {
   const graph = useMemo(() => {
     return variant === "bell"
-      ? buildBellGraph()
+      ? buildBellGraph(bellState)
       : buildHadamardGraph(initialState);
-  }, [variant, initialState]);
+  }, [variant, initialState, bellState]);
 
   return (
     <div
@@ -120,11 +122,18 @@ function CanvasInner({
 export function QuantumCircuitCanvas({
   variant,
   initialState = "0",
+  bellState = "phi_plus",
   isRunning = false,
   visualMode = "advanced",
 }: QuantumCircuitCanvasProps) {
   if (visualMode === "simple") {
-    return <CircuitDiagram variant={variant} initialState={initialState} />;
+    return (
+      <CircuitDiagram
+        variant={variant}
+        initialState={initialState}
+        bellState={bellState}
+      />
+    );
   }
 
   return (
@@ -133,6 +142,7 @@ export function QuantumCircuitCanvas({
         <CanvasInner
           variant={variant}
           initialState={initialState}
+          bellState={bellState}
           isRunning={isRunning}
         />
       </ReactFlowProvider>

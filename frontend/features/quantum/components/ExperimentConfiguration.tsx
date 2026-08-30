@@ -5,6 +5,7 @@ import { BellSimulationForm } from "@/features/quantum/components/BellSimulation
 import { QubitModeSelector } from "@/features/quantum/components/QubitModeSelector";
 import { SimulationForm } from "@/features/quantum/components/SimulationForm";
 import type {
+  BellStateName,
   QuantumExperiment,
   QuantumSimulationResult,
   QubitCount,
@@ -18,6 +19,8 @@ interface ExperimentConfigurationProps {
   onError: (message: string) => void;
   onLoadingChange: (isLoading: boolean) => void;
   isLoading: boolean;
+  bellState?: BellStateName;
+  onBellStateChange?: (bellState: BellStateName) => void;
 }
 
 export function ExperimentConfiguration({
@@ -28,6 +31,8 @@ export function ExperimentConfiguration({
   onError,
   onLoadingChange,
   isLoading,
+  bellState = "phi_plus",
+  onBellStateChange,
 }: ExperimentConfigurationProps) {
   return (
     <Card
@@ -56,6 +61,8 @@ export function ExperimentConfiguration({
             onError={onError}
             onLoadingChange={onLoadingChange}
             isLoading={isLoading}
+            bellState={bellState}
+            onBellStateChange={onBellStateChange ?? (() => undefined)}
           />
         ) : null}
       </div>

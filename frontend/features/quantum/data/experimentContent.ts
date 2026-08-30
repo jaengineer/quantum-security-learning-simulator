@@ -4,7 +4,8 @@
  * stay free of math literals.
  */
 
-import type { ExperimentType } from "@/features/quantum/types";
+import { getBellStateDefinition } from "@/features/quantum/data/bellStates";
+import type { BellStateName, ExperimentType } from "@/features/quantum/types";
 
 export interface ExperimentGateContent {
   name: string;
@@ -49,6 +50,28 @@ const CNOT_GATE: ExperimentGateContent = {
   example: {
     input: "\\mathrm{CNOT}\\,\\tfrac{1}{\\sqrt{2}}(\\lvert 00\\rangle + \\lvert 10\\rangle)",
     output: "\\tfrac{1}{\\sqrt{2}}(\\lvert 00\\rangle + \\lvert 11\\rangle)",
+  },
+};
+
+const PAULI_X_GATE: ExperimentGateContent = {
+  name: "Pauli-X (X)",
+  matrix: "X = \\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix}",
+  physicalEffect:
+    "Flips a qubit between |0⟩ and |1⟩. In the Bell lab it moves support from Φ states to Ψ states.",
+  example: {
+    input: "X\\lvert 0\\rangle",
+    output: "\\lvert 1\\rangle",
+  },
+};
+
+const PAULI_Z_GATE: ExperimentGateContent = {
+  name: "Pauli-Z (Z)",
+  matrix: "Z = \\begin{pmatrix} 1 & 0 \\\\ 0 & -1 \\end{pmatrix}",
+  physicalEffect:
+    "Adds a negative phase to the |1⟩ branch. In the Bell lab it distinguishes plus and minus Bell states.",
+  example: {
+    input: "Z\\lvert 1\\rangle",
+    output: "-\\lvert 1\\rangle",
   },
 };
 
@@ -120,3 +143,46 @@ export const EXPERIMENT_CONTENT: Record<ExperimentType, ExperimentContent> = {
   "ideal-vs-noise": EMPTY_CONTENT,
   "security-case": EMPTY_CONTENT,
 };
+
+export function getExperimentContent(
+  experimentId: ExperimentType,
+  bellState?: BellStateName
+): ExperimentContent {
+  if (experimentId !== "entanglement") {
+    return EXPERIMENT_CONTENT[experimentId];
+  }
+
+  const definition = getBellStateDefinition(bellState);
+  const gates = [HADAMARD_GATE, CNOT_GATE];
+  if (definition.preparationOperations.some((operation) => operation.startsWith("X"))) {
+    gates.push(PAULI_X_GATE);
+  }
+  if (definition.preparationOperations.some((operation) => operation.startsWith("Z"))) {
+    gates.push(PAULI_Z_GATE);
+  }
+
+  return {
+    concept: {
+      title: "Concept",
+      description:
+        "Two qubits are entangled when their joint state cannot be written as the product of two single-qubit states. This lab prepares each canonical Bell state with H, CNOT and the required Pauli correction.",
+      takeaway:
+        "Computational-basis measurement reveals the correlation pattern, while the relative phase distinguishes the plus and minus variants.",
+      formula: {
+        expression: `\\lvert ${definition.labelExpression}\\rangle = ${definition.formulaExpression}`,
+        displayMode: "block",
+      },
+    },
+    gates,
+    physicalInterpretation: {
+      title: "Physical interpretation",
+      description: `${definition.measurementDescription} ${definition.phaseDescription}`,
+      keyFormula: {
+        expression: definition.highlightedOutcomes
+          .map((outcome) => `P(\\lvert ${outcome}\\rangle) = \\tfrac{1}{2}`)
+          .join(", "),
+        displayMode: "block",
+      },
+    },
+  };
+}

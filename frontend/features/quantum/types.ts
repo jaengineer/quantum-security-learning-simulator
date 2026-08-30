@@ -15,7 +15,11 @@ export interface HadamardRequest {
   shots: number;
 }
 
-export type BellStateName = "phi_plus";
+export type BellStateName =
+  | "phi_plus"
+  | "phi_minus"
+  | "psi_plus"
+  | "psi_minus";
 
 export interface BellStateRequest {
   bell_state: BellStateName;

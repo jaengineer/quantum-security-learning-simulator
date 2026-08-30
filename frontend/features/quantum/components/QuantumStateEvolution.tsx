@@ -10,6 +10,7 @@
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
 import { buildEvolutionSteps } from "@/features/quantum/data/evolution";
 import type {
+  BellStateName,
   ExperimentType,
   InitialState,
 } from "@/features/quantum/types";
@@ -17,13 +18,15 @@ import type {
 interface QuantumStateEvolutionProps {
   experimentId: ExperimentType;
   initialState?: InitialState | string;
+  bellState?: BellStateName;
 }
 
 export function QuantumStateEvolution({
   experimentId,
   initialState = "0",
+  bellState,
 }: QuantumStateEvolutionProps) {
-  const steps = buildEvolutionSteps(experimentId, initialState);
+  const steps = buildEvolutionSteps(experimentId, initialState, bellState);
   if (!steps) return null;
 
   return (

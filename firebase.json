@@ -23,6 +23,24 @@
         ]
       },
       {
+        "source": "/superposition",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/entanglement",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
         "source": "/theory",
         "headers": [
           {

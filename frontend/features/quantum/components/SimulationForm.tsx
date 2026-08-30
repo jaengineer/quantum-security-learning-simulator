@@ -5,6 +5,7 @@ import { useState } from "react";
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
 import { Button } from "@/components/ui/Button";
 import { runHadamardSimulation } from "@/features/quantum/services/quantumApi";
+import { formatStableInteger } from "@/features/quantum/utils/format";
 import type {
   InitialState,
   QuantumSimulationResult,
@@ -115,8 +116,9 @@ export function SimulationForm({
             ].join(" ")}
           />
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Integer in [{MIN_SHOTS.toLocaleString()},{" "}
-            {MAX_SHOTS.toLocaleString()}]. Default {DEFAULT_SHOTS.toLocaleString()}.
+            Integer in [{formatStableInteger(MIN_SHOTS)},{" "}
+            {formatStableInteger(MAX_SHOTS)}]. Default{" "}
+            {formatStableInteger(DEFAULT_SHOTS)}.
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@
  */
 
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
+import { formatStableInteger } from "@/features/quantum/utils/format";
 
 interface ProbabilityBarsProps {
   probabilities: Record<string, number>;
@@ -31,7 +32,7 @@ export function ProbabilityBars({ probabilities, counts }: ProbabilityBarsProps)
               <span className="font-mono text-slate-600 dark:text-slate-400">
                 {percent.toFixed(2)}%{" "}
                 <span className="text-slate-400 dark:text-slate-500">
-                  ({count.toLocaleString()} counts)
+                  ({formatStableInteger(count)} counts)
                 </span>
               </span>
             </div>

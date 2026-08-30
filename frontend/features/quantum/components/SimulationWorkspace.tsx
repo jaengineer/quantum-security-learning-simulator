@@ -9,7 +9,12 @@ import { Card } from "@/components/ui/Card";
 import { ExperimentBriefing } from "@/features/quantum/components/ExperimentBriefing";
 import { ExperimentConfiguration } from "@/features/quantum/components/ExperimentConfiguration";
 import { SimulationResults } from "@/features/quantum/components/SimulationResults";
+import { HOME_COPY } from "@/features/quantum/experiments/i18n/strings";
+import { formatStableInteger } from "@/features/quantum/utils/format";
+import { getLocalizedText } from "@/features/theory/i18n/helpers";
+import type { Locale } from "@/features/theory/i18n/types";
 import type {
+  BellStateName,
   QuantumExperiment,
   QuantumSimulationResult,
   QubitCount,
@@ -17,7 +22,10 @@ import type {
 
 interface SimulationWorkspaceProps {
   experiment: QuantumExperiment;
-  onBack: () => void;
+  onBack?: () => void;
+  backHref?: string;
+  locale?: Locale;
+  onLocaleChange?: (locale: Locale) => void;
 }
 
 function resolveInitialQubits(experiment: QuantumExperiment): QubitCount {
@@ -33,10 +41,14 @@ function resolveInitialQubits(experiment: QuantumExperiment): QubitCount {
 export function SimulationWorkspace({
   experiment,
   onBack,
+  backHref,
+  locale = "en",
+  onLocaleChange,
 }: SimulationWorkspaceProps) {
   const [qubitCount, setQubitCount] = useState<QubitCount>(() =>
     resolveInitialQubits(experiment)
   );
+  const [bellState, setBellState] = useState<BellStateName>("phi_plus");
   const [result, setResult] = useState<QuantumSimulationResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -67,17 +79,44 @@ export function SimulationWorkspace({
   return (
     <section className="flex flex-col gap-6">
       <nav className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-        >
-          <span aria-hidden>{"\u2190"}</span>
-          Back to experiments
-        </button>
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-          {experiment.subtitle}
-        </span>
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+          >
+            <span aria-hidden>{"\u2190"}</span>
+            Back to experiments
+          </button>
+        ) : (
+          <a
+            href={backHref ?? "/"}
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+          >
+            <span aria-hidden>{"\u2190"}</span>
+            Back to experiments
+          </a>
+        )}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            {experiment.subtitle}
+          </span>
+          {onLocaleChange ? (
+            <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              {getLocalizedText(HOME_COPY.language, locale)}
+              <select
+                value={locale}
+                onChange={(event) =>
+                  onLocaleChange(event.target.value as Locale)
+                }
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs normal-case tracking-normal text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
+            </label>
+          ) : null}
+        </div>
       </nav>
 
       <header className="flex flex-col gap-2">
@@ -96,6 +135,7 @@ export function SimulationWorkspace({
         <aside className="flex flex-col gap-3 lg:sticky lg:top-6 lg:self-start">
           <ExperimentBriefing
             experiment={experiment}
+            bellState={bellState}
             physicalVisualization={blochVisualization}
           />
         </aside>
@@ -109,6 +149,12 @@ export function SimulationWorkspace({
             onError={setErrorMessage}
             onLoadingChange={setIsLoading}
             isLoading={isLoading}
+            bellState={bellState}
+            onBellStateChange={(nextBellState) => {
+              setBellState(nextBellState);
+              setResult(null);
+              setErrorMessage("");
+            }}
           />
 
           <AnimatePresence mode="wait" initial={false}>
@@ -167,7 +213,7 @@ export function SimulationWorkspace({
               >
                 <Card
                   title="Experimental results"
-                  description={`Circuit: ${result.circuit} — ${result.shots.toLocaleString()} shots${
+                  description={`Circuit: ${result.circuit} — ${formatStableInteger(result.shots)} shots${
                     result.simulator
                       ? ` — simulator: ${result.simulator}`
                       : ""
@@ -181,6 +227,8 @@ export function SimulationWorkspace({
                     experiment={experiment}
                     result={result}
                     isRunning={isLoading}
+                    bellState={bellState}
+                    locale={locale}
                   />
                 </Card>
               </motion.div>

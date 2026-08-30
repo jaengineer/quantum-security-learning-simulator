@@ -1,8 +1,9 @@
 # Estado actual de la plataforma — Quantum Security Learning Simulator
 
-> Documento técnico + funcional. Refleja el estado del repositorio a **29 de
-> agosto de 2026**, tras la consolidación de los laboratorios dedicados de
-> Circuit Builder, Theory Lab, Quantum Teleportation y Grover.
+> Documento técnico + funcional. Refleja el estado del repositorio tras
+> **AE-phase12 — Foundations Labs & Learning Path**, que consolida los
+> experimentos MVP originales como laboratorios dedicados y reorganiza la Home
+> como itinerario pedagógico.
 
 ---
 
@@ -16,8 +17,8 @@ protocolos y algoritmos paso a paso.
 
 La aplicación mantiene una separación clara entre:
 
-- **Experimentos MVP** en la home: Superposición y Entrelazamiento Bell,
-  ejecutados contra el backend FastAPI/Qiskit.
+- **Foundations Labs**: Superposición y Entrelazamiento Bell, originados en el
+  MVP inicial y ahora promovidos a rutas dedicadas.
 - **Herramientas transversales**: Quantum Circuit Builder y Theory Lab.
 - **Laboratorios dedicados de aprendizaje**: Quantum Teleportation Lab y
   Grover Algorithm Lab, con rutas propias y narrativa guiada.
@@ -32,8 +33,8 @@ helpers TypeScript testeables.
 | Bloque | Ruta | Estado |
 |---|---:|---|
 | Home / selector de experimentos | `/` | Implementado |
-| Superposición Hadamard | `/` workspace MVP | Funcional |
-| Entrelazamiento Bell `Φ⁺` | `/` workspace MVP | Funcional |
+| Superposición Hadamard | `/superposition` | Funcional |
+| Entrelazamiento Bell `Φ⁺`, `Φ⁻`, `Ψ⁺`, `Ψ⁻` | `/entanglement` | Funcional |
 | Quantum Circuit Builder | `/builder` | Implementado |
 | Theory Lab | `/theory`, `/theory/[conceptId]` | Implementado |
 | Quantum Teleportation Lab | `/teleportation` | Implementado |
@@ -47,20 +48,49 @@ helpers TypeScript testeables.
 
 ### 2.1 Home y estructura de navegación
 
-La home (`frontend/app/page.tsx`) conserva el selector de experimentos del MVP
-para Superposición y Bell, y añade accesos separados para herramientas y
-laboratorios:
+La home (`frontend/app/page.tsx`) deja de presentar los experimentos MVP como
+un flujo separado renderizado por estado React y pasa a organizar toda la
+plataforma en tres categorías pedagógicas:
 
-- **Build your own circuit** abre `/builder`.
-- **Study the underlying theory** abre `/theory`.
-- **Quantum Teleportation Lab** abre `/teleportation`.
-- **Grover's Algorithm** abre `/grover`.
+- **Foundations**: Superposición y Entrelazamiento.
+- **Algorithms & Protocols**: Quantum Teleportation y Grover's Algorithm.
+- **Learning Tools**: Quantum Circuit Builder y Theory Lab.
 
-Esta separación evita mezclar casos de uso: el Builder es una herramienta
-general de circuitos, Theory Lab es una referencia conceptual, y Teleportation
-/ Grover son laboratorios guiados con pasos fijos.
+La reorganización es de arquitectura de información, no de sistema visual: se
+preservan las tarjetas, escala tipográfica, bordes, sombras, colores y
+comportamiento responsive existentes. Todas las tarjetas principales navegan a
+rutas absolutas compatibles con el despliegue estático en Firebase Hosting.
 
-### 2.2 Quantum Circuit Builder (`/builder`)
+### 2.2 Foundations Labs (`/superposition`, `/entanglement`)
+
+AE-phase12 consolida los dos experimentos originales del MVP como
+laboratorios de primer nivel, no como módulos nuevos. Su función es mostrar
+los fundamentos sobre los que después se apoyan Teleportation, Grover y el
+Builder:
+
+- **Superposition Lab (`/superposition`)** conserva el experimento Hadamard
+  original: selección de `|0⟩`/`|1⟩`, configuración de `shots`, simulación
+  backend Qiskit, representación matemática, resultados de conteo/probabilidad
+  y visualización Bloch 3D.
+- **Entanglement Lab (`/entanglement`)** amplía el experimento Bell original
+  para soportar los cuatro estados canónicos `Φ⁺`, `Φ⁻`, `Ψ⁺` y `Ψ⁻`.
+
+La preparación Bell sigue el convenio `q0` como bit más significativo:
+
+| Estado | Preparación |
+|---|---|
+| `Φ⁺` | `H(q0) → CNOT(q0,q1)` |
+| `Φ⁻` | `H(q0) → CNOT(q0,q1) → Z(q0)` |
+| `Ψ⁺` | `H(q0) → CNOT(q0,q1) → X(q1)` |
+| `Ψ⁻` | `H(q0) → CNOT(q0,q1) → X(q1) → Z(q0)` |
+
+La UI distingue explícitamente entre correlaciones observables en la base
+computacional y fase relativa. `Φ⁺`/`Φ⁻` comparten probabilidades de medida,
+igual que `Ψ⁺`/`Ψ⁻`, pero no representan el mismo vector de estado. La
+concurrencia se calcula en frontend a partir del vector ideal usando la
+implementación existente del Builder: `C = 2 |ad - bc|`.
+
+### 2.3 Quantum Circuit Builder (`/builder`)
 
 El Builder es una herramienta interactiva cliente-side para construir y
 simular circuitos de 1 o 2 qubits sobre las líneas `q0` y `q1`.
@@ -91,7 +121,7 @@ Mejoras visuales recientes:
 - El selector de qubits queda alineado con el botón **Run simulation** para
   mejorar la lectura horizontal de los controles.
 
-### 2.3 Quantum Teleportation Lab (`/teleportation`)
+### 2.4 Quantum Teleportation Lab (`/teleportation`)
 
 El laboratorio de teleportación implementa una visualización de protocolo de
 3 qubits sin ampliar el Builder genérico a 3 qubits.
@@ -129,7 +159,7 @@ La UI compara el estado inicial de Alice y el estado recuperado por Bob con
 tarjetas Bloch 3D, y el laboratorio tiene internacionalización completa en
 inglés y español.
 
-### 2.4 Grover Algorithm Lab (`/grover`)
+### 2.5 Grover Algorithm Lab (`/grover`)
 
 El laboratorio de Grover implementa una búsqueda cuántica ideal sobre dos
 qubits: `N = 4`, con objetivos seleccionables `|00⟩`, `|01⟩`, `|10⟩` y
@@ -171,7 +201,7 @@ Visualizaciones:
 El laboratorio también incluye internacionalización completa en inglés y
 español, y tests matemáticos para todos los objetivos y etapas.
 
-### 2.5 Theory Lab (`/theory`)
+### 2.6 Theory Lab (`/theory`)
 
 Theory Lab es el módulo de referencia conceptual. Proporciona catálogo,
 búsqueda, filtros, detalle por concepto e internacionalización EN/ES.
@@ -213,7 +243,8 @@ El backend FastAPI conserva el alcance MVP:
 
 - `GET /health`.
 - `POST /simulate/hadamard`.
-- `POST /simulate/bell-state`.
+- `POST /simulate/bell-state`, ahora con soporte para `phi_plus`,
+  `phi_minus`, `psi_plus` y `psi_minus`.
 - Modelos Pydantic v2 con `extra="forbid"`.
 - Motor Qiskit con `AerSimulator` por defecto y fallback a `BasicSimulator`.
 - Normalización de `counts` y `probabilities` para que el frontend reciba

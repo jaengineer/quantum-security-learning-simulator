@@ -13,10 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 InitialState = Literal["0", "1"]
 
-# Only the canonical |Phi+> Bell state is wired into the engine for the MVP.
-# The other three (phi_minus, psi_plus, psi_minus) are advertised in the UI as
-# "coming soon" so the literal stays narrow at the API boundary on purpose.
-BellStateName = Literal["phi_plus"]
+BellStateName = Literal["phi_plus", "phi_minus", "psi_plus", "psi_minus"]
 
 
 class HadamardRequest(BaseModel):
@@ -43,16 +40,16 @@ class HadamardRequest(BaseModel):
 class BellStateRequest(BaseModel):
     """Input payload for ``POST /simulate/bell-state``.
 
-    Only ``phi_plus`` is implemented in this MVP iteration. New Bell states
-    (``phi_minus``, ``psi_plus``, ``psi_minus``) will be added by extending the
-    literal and the engine.
+    The four canonical Bell states are supported by the same endpoint so the
+    original MVP experiment can be explored without changing the response
+    contract.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     bell_state: BellStateName = Field(
         default="phi_plus",
-        description="Bell state to prepare. Currently only 'phi_plus' is supported.",
+        description="Bell state to prepare: phi_plus, phi_minus, psi_plus or psi_minus.",
     )
     shots: int = Field(
         default=1024,

@@ -4,11 +4,12 @@ import type { ReactNode } from "react";
 
 import { QuantumExplanationCard } from "@/components/quantum/QuantumExplanationCard";
 import { QuantumGateCard } from "@/components/quantum/QuantumGateCard";
-import { EXPERIMENT_CONTENT } from "@/features/quantum/data/experimentContent";
-import type { QuantumExperiment } from "@/features/quantum/types";
+import { getExperimentContent } from "@/features/quantum/data/experimentContent";
+import type { BellStateName, QuantumExperiment } from "@/features/quantum/types";
 
 interface ExperimentBriefingProps {
   experiment: QuantumExperiment;
+  bellState?: BellStateName;
   physicalVisualization?: ReactNode;
 }
 
@@ -22,9 +23,10 @@ function SectionLabel({ children }: { children: string }) {
 
 export function ExperimentBriefing({
   experiment,
+  bellState,
   physicalVisualization,
 }: ExperimentBriefingProps) {
-  const content = EXPERIMENT_CONTENT[experiment.id];
+  const content = getExperimentContent(experiment.id, bellState);
   const hasGates = content.gates.length > 0;
   const isComingSoon = experiment.status === "coming-soon";
 
