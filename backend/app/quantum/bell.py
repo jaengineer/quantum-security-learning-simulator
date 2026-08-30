@@ -10,10 +10,8 @@ computing course:
         --> CX(0,1)   -->  (|00> + |11>) / sqrt(2)  =  |Phi+>
         --> measure   -->  correlated outcomes "00" and "11" only.
 
-The other three Bell states (|Phi->, |Psi+>, |Psi->) only differ by a Pauli
-gate inserted before the CNOT. They are intentionally not implemented in this
-MVP iteration; the API literal stays narrow and the UI shows them as "coming
-soon" so the academic narrative is preserved.
+The other three Bell states (|Phi->, |Psi+>, |Psi->) reuse the same H + CNOT
+foundation and add one or two Pauli corrections before measurement.
 
 Qiskit bit ordering note
 ------------------------
@@ -34,21 +32,39 @@ from qiskit import QuantumCircuit, transpile
 
 from app.quantum.backend import get_simulator, get_simulator_name
 
-VALID_BELL_STATES = frozenset({"phi_plus"})
+VALID_BELL_STATES = frozenset(
+    {"phi_plus", "phi_minus", "psi_plus", "psi_minus"}
+)
 BELL_BASIS_STATES = ("00", "01", "10", "11")
 
 
-def _build_bell_circuit(bell_state: str) -> QuantumCircuit:
-    """Construct the 2-qubit / 2-clbit circuit for the requested Bell state."""
-    if bell_state != "phi_plus":
+def _validate_bell_state(bell_state: str) -> None:
+    if bell_state not in VALID_BELL_STATES:
         raise ValueError(
             f"bell_state must be one of {sorted(VALID_BELL_STATES)}, "
             f"got: {bell_state!r}"
         )
 
-    circuit = QuantumCircuit(2, 2)
+
+def _build_bell_preparation_circuit(bell_state: str) -> QuantumCircuit:
+    """Construct the 2-qubit unitary preparation for the requested Bell state."""
+    _validate_bell_state(bell_state)
+
+    circuit = QuantumCircuit(2)
     circuit.h(0)
     circuit.cx(0, 1)
+    if bell_state in {"psi_plus", "psi_minus"}:
+        circuit.x(1)
+    if bell_state in {"phi_minus", "psi_minus"}:
+        circuit.z(0)
+    return circuit
+
+
+def _build_bell_circuit(bell_state: str) -> QuantumCircuit:
+    """Construct the 2-qubit / 2-clbit circuit for the requested Bell state."""
+    preparation = _build_bell_preparation_circuit(bell_state)
+    circuit = QuantumCircuit(2, 2)
+    circuit.compose(preparation, inplace=True)
     circuit.measure(0, 0)
     circuit.measure(1, 1)
     return circuit
@@ -84,8 +100,7 @@ def simulate_bell_state(bell_state: str, shots: int) -> dict[str, Any]:
     Parameters
     ----------
     bell_state:
-        Identifier of the Bell state to prepare. Only ``"phi_plus"`` is
-        implemented in the current MVP iteration.
+        Identifier of the Bell state to prepare.
     shots:
         Number of independent measurements to perform.
 

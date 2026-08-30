@@ -22,7 +22,12 @@
  *     current experiments never use it.
  */
 
-import type { ExperimentType, InitialState } from "@/features/quantum/types";
+import { getBellStateDefinition } from "@/features/quantum/data/bellStates";
+import type {
+  BellStateName,
+  ExperimentType,
+  InitialState,
+} from "@/features/quantum/types";
 
 export type EvolutionStepKind =
   | "initial"
@@ -73,8 +78,11 @@ export function buildSuperpositionSteps(
   ];
 }
 
-export function buildEntanglementSteps(): EvolutionStep[] {
-  return [
+export function buildEntanglementSteps(
+  bellState: BellStateName = "phi_plus"
+): EvolutionStep[] {
+  const definition = getBellStateDefinition(bellState);
+  const steps: EvolutionStep[] = [
     {
       id: "initial",
       label: "Initial state",
@@ -102,16 +110,53 @@ export function buildEntanglementSteps(): EvolutionStep[] {
       operationFromPrevious: "Apply CX(q0, q1)",
       kind: "state",
     },
-    {
-      id: "measurement",
-      label: "Correlated outcomes",
-      expression: "\\lvert 00\\rangle \\;\\text{or}\\; \\lvert 11\\rangle",
+  ];
+
+  if (definition.preparationOperations.includes("X(q1)")) {
+    steps.push({
+      id: "after-x",
+      label: "Bit-flipped Bell support",
+      expression:
+        "\\tfrac{1}{\\sqrt{2}}\\bigl(\\lvert 01\\rangle + \\lvert 10\\rangle\\bigr)",
       description:
-        "Measurement collapses the state to either |00⟩ or |11⟩. Outcomes are perfectly correlated.",
+        "Applying X on q1 shifts the non-zero branches from |00⟩/|11⟩ to |01⟩/|10⟩.",
+      operationFromPrevious: "Apply X(q1)",
+      kind: "state",
+    });
+  }
+
+  if (definition.preparationOperations.includes("Z(q0)")) {
+    steps.push({
+      id: "after-z",
+      label: "Relative phase encoded",
+      expression: definition.formulaExpression,
+      description:
+        "Applying Z on q0 introduces the negative relative phase that distinguishes the minus Bell state.",
+      operationFromPrevious: "Apply Z(q0)",
+      kind: "state",
+    });
+  } else {
+    steps[steps.length - 1] = {
+      ...steps[steps.length - 1],
+      expression: definition.formulaExpression,
+    };
+  }
+
+  steps.push({
+      id: "measurement",
+      label:
+        definition.correlationClass === "same-bit"
+          ? "Correlated outcomes"
+          : "Anti-correlated outcomes",
+      expression: definition.highlightedOutcomes
+        .map((outcome) => `\\lvert ${outcome}\\rangle`)
+        .join(" \\;\\text{or}\\; "),
+      description: definition.measurementDescription,
       operationFromPrevious: "Measurement",
       kind: "measurement",
-    },
-  ];
+    });
+
+  return steps;
 }
 
 /**
@@ -120,13 +165,14 @@ export function buildEntanglementSteps(): EvolutionStep[] {
  */
 export function buildEvolutionSteps(
   experimentId: ExperimentType,
-  initialState: InitialState | string
+  initialState: InitialState | string,
+  bellState?: BellStateName
 ): EvolutionStep[] | null {
   if (experimentId === "superposition") {
     return buildSuperpositionSteps(initialState);
   }
   if (experimentId === "entanglement") {
-    return buildEntanglementSteps();
+    return buildEntanglementSteps(bellState);
   }
   return null;
 }

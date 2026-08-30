@@ -9,13 +9,15 @@
 import type { ReactNode } from "react";
 
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
-import type { InitialState } from "@/features/quantum/types";
+import { getBellStateDefinition } from "@/features/quantum/data/bellStates";
+import type { BellStateName, InitialState } from "@/features/quantum/types";
 
 type Variant = "hadamard" | "bell";
 
 interface CircuitDiagramProps {
   variant: Variant;
   initialState?: InitialState | string;
+  bellState?: BellStateName;
 }
 
 function StepBox({ children }: { children: ReactNode }) {
@@ -71,7 +73,11 @@ function HadamardWire({ initialState }: { initialState: string }) {
   );
 }
 
-function BellWires() {
+function BellWires({ bellState }: { bellState: BellStateName }) {
+  const definition = getBellStateDefinition(bellState);
+  const hasX = definition.preparationOperations.includes("X(q1)");
+  const hasZ = definition.preparationOperations.includes("Z(q0)");
+
   return (
     <div className="flex flex-col gap-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
@@ -84,6 +90,12 @@ function BellWires() {
         <Arrow />
         <StepBox>{"\u2022 (control)"}</StepBox>
         <Arrow />
+        {hasZ ? (
+          <>
+            <StepBox>Z</StepBox>
+            <Arrow />
+          </>
+        ) : null}
         <StepBox>Measurement</StepBox>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -94,11 +106,19 @@ function BellWires() {
         <Arrow />
         <StepBox>⊕ (target)</StepBox>
         <Arrow />
+        {hasX ? (
+          <>
+            <StepBox>X</StepBox>
+            <Arrow />
+          </>
+        ) : null}
         <StepBox>Measurement</StepBox>
       </div>
       <p className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-        H on q0 then CX(q0, q1) prepares the Bell state{" "}
-        <QuantumFormula expression="\lvert \Phi^{+}\rangle = \tfrac{1}{\sqrt{2}}\bigl(\lvert 00\rangle + \lvert 11\rangle\bigr)" />
+        {definition.preparationOperations.join(" → ")} prepares{" "}
+        <QuantumFormula
+          expression={`\\lvert ${definition.labelExpression}\\rangle = ${definition.formulaExpression}`}
+        />
         .
       </p>
     </div>
@@ -108,9 +128,10 @@ function BellWires() {
 export function CircuitDiagram({
   variant,
   initialState = "0",
+  bellState = "phi_plus",
 }: CircuitDiagramProps) {
   if (variant === "bell") {
-    return <BellWires />;
+    return <BellWires bellState={bellState} />;
   }
   return <HadamardWire initialState={initialState} />;
 }

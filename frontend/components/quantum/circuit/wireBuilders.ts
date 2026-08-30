@@ -11,7 +11,7 @@
 
 import type { Edge, Node } from "@xyflow/react";
 
-import type { InitialState } from "@/features/quantum/types";
+import type { BellStateName, InitialState } from "@/features/quantum/types";
 
 /* ------------------------------------------------------------------ */
 /* Node / edge type discriminators                                     */
@@ -32,7 +32,7 @@ export interface QuantumStateNodeData extends Record<string, unknown> {
 
 export interface QuantumGateNodeData extends Record<string, unknown> {
   kind: "gate";
-  symbol: "H" | "X";
+  symbol: "H" | "X" | "Z";
   semantic: "active" | "superposition" | "entangled";
 }
 
@@ -118,6 +118,16 @@ export const QUANTUM_EDGE_TYPES_LOOKUP = EDGE_TYPES;
 
 function column(index: number): number {
   return START_X + index * COLUMN_GAP;
+}
+
+function wireEdge(id: string, source: string, target: string): QuantumEdge {
+  return {
+    id,
+    source,
+    target,
+    type: EDGE_TYPES.WIRE,
+    data: { kind: "wire" },
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -215,18 +225,24 @@ export function buildHadamardGraph(initialState: InitialState | string): Quantum
 /* Bell-state graph                                                    */
 /* ------------------------------------------------------------------ */
 
-export function buildBellGraph(): QuantumCircuitGraph {
+export function buildBellGraph(
+  bellState: BellStateName = "phi_plus"
+): QuantumCircuitGraph {
   const nodes: QuantumNode[] = [];
   const edges: QuantumEdge[] = [];
 
   const q0State = "b-q0-state";
   const q0H = "b-q0-h";
   const q0Control = "b-q0-control";
+  const q0Z = "b-q0-z";
   const q0Measure = "b-q0-measure";
 
   const q1State = "b-q1-state";
   const q1Target = "b-q1-target";
+  const q1X = "b-q1-x";
   const q1Measure = "b-q1-measure";
+  const includeX = bellState === "psi_plus" || bellState === "psi_minus";
+  const includeZ = bellState === "phi_minus" || bellState === "psi_minus";
 
   // q0 wire
   nodes.push(
@@ -257,12 +273,23 @@ export function buildBellGraph(): QuantumCircuitGraph {
     {
       id: q0Measure,
       type: NODE_TYPES.MEASUREMENT,
-      position: { x: column(3), y: WIRE_Y_TOP },
+      position: { x: column(4), y: WIRE_Y_TOP },
       data: { kind: "measurement" },
       draggable: false,
       selectable: false,
     }
   );
+
+  if (includeZ) {
+    nodes.push({
+      id: q0Z,
+      type: NODE_TYPES.GATE,
+      position: { x: column(3), y: WIRE_Y_TOP },
+      data: { kind: "gate", symbol: "Z", semantic: "entangled" },
+      draggable: false,
+      selectable: false,
+    });
+  }
 
   // q1 wire
   nodes.push(
@@ -285,54 +312,45 @@ export function buildBellGraph(): QuantumCircuitGraph {
     {
       id: q1Measure,
       type: NODE_TYPES.MEASUREMENT,
-      position: { x: column(3), y: WIRE_Y_BOTTOM },
+      position: { x: column(4), y: WIRE_Y_BOTTOM },
       data: { kind: "measurement" },
       draggable: false,
       selectable: false,
     }
   );
 
+  if (includeX) {
+    nodes.push({
+      id: q1X,
+      type: NODE_TYPES.GATE,
+      position: { x: column(3), y: WIRE_Y_BOTTOM },
+      data: { kind: "gate", symbol: "X", semantic: "entangled" },
+      draggable: false,
+      selectable: false,
+    });
+  }
+
   // Horizontal wires q0
   edges.push(
-    {
-      id: `e-${q0State}-${q0H}`,
-      source: q0State,
-      target: q0H,
-      type: EDGE_TYPES.WIRE,
-      data: { kind: "wire" },
-    },
-    {
-      id: `e-${q0H}-${q0Control}`,
-      source: q0H,
-      target: q0Control,
-      type: EDGE_TYPES.WIRE,
-      data: { kind: "wire" },
-    },
-    {
-      id: `e-${q0Control}-${q0Measure}`,
-      source: q0Control,
-      target: q0Measure,
-      type: EDGE_TYPES.WIRE,
-      data: { kind: "wire" },
-    }
+    wireEdge(`e-${q0State}-${q0H}`, q0State, q0H),
+    wireEdge(`e-${q0H}-${q0Control}`, q0H, q0Control),
+    includeZ
+      ? wireEdge(`e-${q0Control}-${q0Z}`, q0Control, q0Z)
+      : wireEdge(`e-${q0Control}-${q0Measure}`, q0Control, q0Measure),
+    ...(includeZ
+      ? [wireEdge(`e-${q0Z}-${q0Measure}`, q0Z, q0Measure)]
+      : [])
   );
 
   // Horizontal wires q1
   edges.push(
-    {
-      id: `e-${q1State}-${q1Target}`,
-      source: q1State,
-      target: q1Target,
-      type: EDGE_TYPES.WIRE,
-      data: { kind: "wire" },
-    },
-    {
-      id: `e-${q1Target}-${q1Measure}`,
-      source: q1Target,
-      target: q1Measure,
-      type: EDGE_TYPES.WIRE,
-      data: { kind: "wire" },
-    }
+    wireEdge(`e-${q1State}-${q1Target}`, q1State, q1Target),
+    includeX
+      ? wireEdge(`e-${q1Target}-${q1X}`, q1Target, q1X)
+      : wireEdge(`e-${q1Target}-${q1Measure}`, q1Target, q1Measure),
+    ...(includeX
+      ? [wireEdge(`e-${q1X}-${q1Measure}`, q1X, q1Measure)]
+      : [])
   );
 
   // Vertical CNOT link
@@ -349,7 +367,7 @@ export function buildBellGraph(): QuantumCircuitGraph {
   return {
     nodes,
     edges,
-    width: column(3) + 120,
+    width: column(4) + 120,
     height: WIRE_Y_BOTTOM + 80,
   };
 }

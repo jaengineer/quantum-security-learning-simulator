@@ -25,6 +25,7 @@ import { Fragment } from "react";
 
 import { buildEvolutionSteps } from "@/features/quantum/data/evolution";
 import type {
+  BellStateName,
   ExperimentType,
   InitialState,
 } from "@/features/quantum/types";
@@ -35,13 +36,15 @@ import { VerticalTimelineStep } from "./VerticalTimelineStep";
 interface VerticalQuantumEvolutionTimelineProps {
   experimentId: ExperimentType;
   initialState?: InitialState | string;
+  bellState?: BellStateName;
 }
 
 export function VerticalQuantumEvolutionTimeline({
   experimentId,
   initialState = "0",
+  bellState,
 }: VerticalQuantumEvolutionTimelineProps) {
-  const steps = buildEvolutionSteps(experimentId, initialState);
+  const steps = buildEvolutionSteps(experimentId, initialState, bellState);
   if (!steps) return null;
 
   return (

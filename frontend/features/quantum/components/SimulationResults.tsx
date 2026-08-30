@@ -3,9 +3,15 @@ import { QuantumDistributionChart } from "@/components/quantum/charts/QuantumDis
 import { QuantumCircuitCanvas } from "@/components/quantum/circuit/QuantumCircuitCanvas";
 import type { CircuitVisualMode } from "@/components/quantum/circuit/QuantumCircuitCanvas";
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
+import { EntanglementPanel } from "@/features/quantum/builder/components/EntanglementPanel";
+import { classifyEntanglement, concurrence } from "@/features/quantum/builder/math/quantum-state";
+import { EntanglementComparisonPanel } from "@/features/quantum/components/EntanglementComparisonPanel";
 import { ProbabilityBars } from "@/features/quantum/components/ProbabilityBars";
 import { QuantumStateEvolution } from "@/features/quantum/components/QuantumStateEvolution";
+import { getBellStateDefinition } from "@/features/quantum/data/bellStates";
+import { formatStableInteger } from "@/features/quantum/utils/format";
 import type {
+  BellStateName,
   ExperimentType,
   QuantumExperiment,
   QuantumSimulationResult,
@@ -16,6 +22,7 @@ interface SimulationResultsProps {
   result: QuantumSimulationResult;
   isRunning?: boolean;
   visualMode?: CircuitVisualMode;
+  bellState?: BellStateName;
 }
 
 function resolveVariant(
@@ -67,40 +74,63 @@ function SuperpositionInterpretation({
   );
 }
 
-function EntanglementInterpretation() {
+function EntanglementInterpretation({
+  bellState,
+}: {
+  bellState: BellStateName;
+}) {
+  const definition = getBellStateDefinition(bellState);
+  const sameProbabilitiesNote =
+    bellState === "phi_minus"
+      ? "Φ− has the same computational-basis probabilities as Φ+, but the |11⟩ branch has the opposite phase."
+      : bellState === "psi_minus"
+        ? "Ψ− has the same computational-basis probabilities as Ψ+, but the |10⟩ branch has the opposite phase."
+        : "The plus/minus partner can share these measurement probabilities while differing by relative phase.";
+
   return (
     <ul className="flex flex-col gap-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
       <li className="flex flex-wrap items-baseline gap-2">
         <span className="font-medium">Prepared Bell state:</span>
-        <QuantumFormula expression="\lvert \Phi^{+}\rangle = \tfrac{1}{\sqrt{2}}\bigl(\lvert 00\rangle + \lvert 11\rangle\bigr)" />
+        <QuantumFormula
+          expression={`\\lvert ${definition.labelExpression}\\rangle = ${definition.formulaExpression}`}
+        />
       </li>
       <li>
-        Measurement only ever yields{" "}
-        <QuantumFormula expression="\lvert 00\rangle" /> or{" "}
-        <QuantumFormula expression="\lvert 11\rangle" />; in an ideal
-        simulator the outcomes <QuantumFormula expression="\lvert 01\rangle" />{" "}
-        and <QuantumFormula expression="\lvert 10\rangle" /> have zero
-        probability.
+        {definition.measurementDescription}
       </li>
       <li>
-        The two qubits are <span className="font-medium">perfectly correlated</span>
-        : measuring one immediately fixes the value of the other.
+        The two qubits are{" "}
+        <span className="font-medium">
+          {definition.correlationClass === "same-bit"
+            ? "perfectly correlated"
+            : "perfectly anti-correlated"}
+        </span>
+        : measuring one fixes the expected value of the other.
+      </li>
+      <li>
+        <span className="font-medium">Relative phase:</span>{" "}
+        {definition.phaseDescription} {sameProbabilitiesNote}
       </li>
     </ul>
   );
 }
-
-const BELL_HIGHLIGHT: ReadonlySet<string> = new Set(["00", "11"]);
 
 export function SimulationResults({
   experiment,
   result,
   isRunning = false,
   visualMode = "advanced",
+  bellState,
 }: SimulationResultsProps) {
   const variant = resolveVariant(experiment.id, result);
   const initialState = result.initial_state ?? "0";
-  const highlight = variant === "bell" ? BELL_HIGHLIGHT : undefined;
+  const resolvedBellState = getBellStateDefinition(
+    result.bell_state ?? bellState
+  ).id;
+  const bellDefinition = getBellStateDefinition(resolvedBellState);
+  const entanglementValue = concurrence(bellDefinition.stateVector);
+  const highlight =
+    variant === "bell" ? new Set(bellDefinition.highlightedOutcomes) : undefined;
 
   return (
     <div className="flex flex-col gap-6">
@@ -109,6 +139,7 @@ export function SimulationResults({
         <QuantumCircuitCanvas
           variant={variant}
           initialState={initialState}
+          bellState={resolvedBellState}
           isRunning={isRunning}
           visualMode={visualMode}
         />
@@ -120,11 +151,13 @@ export function SimulationResults({
           <QuantumStateEvolution
             experimentId={experiment.id}
             initialState={initialState}
+            bellState={resolvedBellState}
           />
         ) : (
           <VerticalQuantumEvolutionTimeline
             experimentId={experiment.id}
             initialState={initialState}
+            bellState={resolvedBellState}
           />
         )}
       </section>
@@ -133,7 +166,7 @@ export function SimulationResults({
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-3">
             <SectionTitle>
-              {`Counts (this run, ${result.shots.toLocaleString()} shots)`}
+              {`Counts (this run, ${formatStableInteger(result.shots)} shots)`}
             </SectionTitle>
             <dl className="grid grid-cols-2 gap-3 text-sm">
               {Object.keys(result.counts)
@@ -147,7 +180,7 @@ export function SimulationResults({
                       <QuantumFormula expression={`\\lvert ${key}\\rangle`} />
                     </dt>
                     <dd className="font-mono text-base text-slate-900 dark:text-slate-100">
-                      {(result.counts[key] ?? 0).toLocaleString()}
+                      {formatStableInteger(result.counts[key] ?? 0)}
                     </dd>
                   </div>
                 ))}
@@ -165,7 +198,9 @@ export function SimulationResults({
       ) : (
         <section className="flex flex-col gap-3">
           <SectionTitle>
-            {`Measurement distribution (${result.shots.toLocaleString()} shots)`}
+            {`Measurement distribution (${formatStableInteger(
+              result.shots
+            )} shots)`}
           </SectionTitle>
           <QuantumDistributionChart
             probabilities={result.probabilities}
@@ -179,11 +214,24 @@ export function SimulationResults({
       <section className="flex flex-col gap-2">
         <SectionTitle>Experimental interpretation</SectionTitle>
         {variant === "bell" ? (
-          <EntanglementInterpretation />
+          <EntanglementInterpretation bellState={resolvedBellState} />
         ) : (
           <SuperpositionInterpretation initialState={initialState} />
         )}
       </section>
+
+      {variant === "bell" ? (
+        <section className="flex flex-col gap-3">
+          <SectionTitle>Entanglement indicator</SectionTitle>
+          <EntanglementPanel
+            entanglement={{
+              concurrence: entanglementValue,
+              classification: classifyEntanglement(entanglementValue),
+            }}
+          />
+          <EntanglementComparisonPanel bellState={resolvedBellState} />
+        </section>
+      ) : null}
     </div>
   );
 }

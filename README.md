@@ -6,10 +6,10 @@ Interactive educational platform for visualizing quantum computing concepts
 applied to information security using Qiskit, Next.js and FastAPI.
 
 This repository contains the prototype of a web platform developed for a
-Master's Thesis (TFM) in Quantum Computing. It now exposes a modular
-**experiment selector**: the user picks a quantum phenomenon (superposition,
-entanglement, and two roadmap entries) and the platform runs the
-corresponding circuit on a real Qiskit backend.
+Master's Thesis (TFM) in Quantum Computing. It now exposes a modular learning
+platform: foundational labs for superposition and entanglement, routed
+algorithm/protocol labs, transversal learning tools, and a FastAPI/Qiskit
+backend for the original MVP simulations.
 
 ---
 
@@ -67,14 +67,16 @@ flowchart TD
     Sim --> API --> Service --> Workspace
 ```
 
-### Available experiments
+### Available modules
 
-| Experiment                | Qubits | Backend status | Notes                                            |
-| ------------------------- | ------ | -------------- | ------------------------------------------------ |
-| Superposition             | 1      | Available      | Hadamard gate; `POST /simulate/hadamard`.        |
-| Entanglement              | 2      | Available      | Bell state `\u03A6\u207A`; `POST /simulate/bell-state`. |
-| Ideal vs Noisy Simulation | 1\u20132   | Coming soon    | Roadmap; UI tile is visible but disabled.        |
-| Quantum Security Case     | 1\u20132   | Coming soon    | Roadmap; UI tile is visible but disabled.        |
+| Module | Route | Qubits | Notes |
+| --- | --- | ---: | --- |
+| Superposition Lab | `/superposition` | 1 | Original MVP Hadamard experiment promoted to a routed Foundations lab; uses `POST /simulate/hadamard`. |
+| Entanglement Lab | `/entanglement` | 2 | Original MVP Bell experiment promoted to a routed Foundations lab; supports `Φ⁺`, `Φ⁻`, `Ψ⁺`, `Ψ⁻` through `POST /simulate/bell-state`. |
+| Quantum Teleportation Lab | `/teleportation` | 3 | Guided frontend lab for the teleportation protocol. |
+| Grover Algorithm Lab | `/grover` | 2 | Guided frontend lab for 2-qubit Grover search. |
+| Quantum Circuit Builder | `/builder` | 1-2 | Transversal circuit-building and local simulation tool. |
+| Theory Lab | `/theory` | - | Curated EN/ES conceptual reference. |
 
 ### Screenshots
 
@@ -134,7 +136,7 @@ TFM-Platform/
 | ------ | ----------------------- | --------------------------------------------- |
 | GET    | `/health`               | Liveness probe.                               |
 | POST   | `/simulate/hadamard`    | Single-qubit Hadamard experiment.             |
-| POST   | `/simulate/bell-state`  | Two-qubit Bell state (`\u03A6\u207A` available). |
+| POST   | `/simulate/bell-state`  | Two-qubit Bell states (`Φ⁺`, `Φ⁻`, `Ψ⁺`, `Ψ⁻`). |
 
 #### `POST /simulate/hadamard`
 
@@ -165,6 +167,15 @@ Request:
 
 ```json
 { "bell_state": "phi_plus", "shots": 1024 }
+```
+
+Valid `bell_state` values:
+
+```text
+phi_plus
+phi_minus
+psi_plus
+psi_minus
 ```
 
 Response:
@@ -224,10 +235,10 @@ click "Run simulation".
 
 - **Entanglement.** Two qubits become entangled when their joint state
   cannot be written as the product of individual qubit states. The
-  Bell state `Φ⁺` is the simplest entangled state and is produced with
-  exactly one Hadamard plus one CNOT. Measuring it yields only `|00⟩` or
-  `|11⟩`, illustrating perfect correlation. The MVP uses two qubits because
-  entanglement, by definition, cannot appear with fewer.
+  Entanglement Lab supports the four canonical Bell states. `Φ⁺` and `Φ⁻`
+  yield `|00⟩` or `|11⟩` in the computational basis, while `Ψ⁺` and `Ψ⁻`
+  yield `|01⟩` or `|10⟩`. The `+` and `−` variants differ by relative phase,
+  even when computational-basis measurement probabilities are identical.
 
 - **Why 1 and 2 qubits?** They are the smallest configurations that capture
   the two fundamental quantum phenomena needed to build the rest of the
@@ -235,19 +246,16 @@ click "Run simulation".
 
 ### Current limitations
 
-- Only `Φ⁺` is implemented among the four Bell states.
 - Ideal simulation only; no noise model is plugged in.
 - No persistence and no authentication.
 - CORS is open only to `http://localhost:3000` by default.
 
 ### Next steps (roadmap)
 
-1. Remaining Bell states (`Φ⁻`, `Ψ⁺`, `Ψ⁻`).
-2. Ideal vs Noisy comparison using `AerSimulator` noise models.
-3. Pauli `X`/`Z` single-qubit baselines.
-4. Grover search (small N).
-5. Simplified Shor (period-finding on a small modulus).
-6. Dedicated security module: BB84 QKD and a discussion of post-quantum
+1. Ideal vs Noisy comparison using `AerSimulator` noise models.
+2. Pauli `X`/`Z` single-qubit baselines.
+3. Simplified Shor (period-finding on a small modulus).
+4. Dedicated security module: BB84 QKD and a discussion of post-quantum
    cryptography.
 
 Extension guides:
@@ -408,8 +416,8 @@ curl http://localhost:8080/health
 ### Production verification checklist
 
 - Frontend URL loads.
-- Direct refresh works for `/builder`, `/theory`, `/theory/<conceptId>`,
-  `/teleportation`, and `/grover`.
+- Direct refresh works for `/superposition`, `/entanglement`, `/builder`,
+  `/theory`, `/theory/<conceptId>`, `/teleportation`, and `/grover`.
 - Static assets, fonts, Tailwind styles, KaTeX, Plotly, Bloch Sphere 3D,
   drag/drop, glossary and tooltips work.
 - Builder works in 1-qubit and 2-qubit modes.
