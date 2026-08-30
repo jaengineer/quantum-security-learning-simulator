@@ -257,6 +257,172 @@ Extension guides:
 
 ---
 
+## Deployment
+
+The public TFM deployment uses a split architecture:
+
+```mermaid
+flowchart TD
+    Browser["Browser"]
+    Hosting["Firebase Hosting<br/>static Next.js export"]
+    Backend["Cloud Run<br/>FastAPI + Qiskit"]
+    Simulator["Qiskit AerSimulator<br/>BasicSimulator fallback"]
+
+    Browser --> Hosting
+    Browser -->|"HTTPS API calls for Hadamard / Bell"| Backend
+    Backend --> Simulator
+```
+
+### Google Cloud / Firebase project
+
+- Display name: `Quantum Learning Simulator`
+- Project ID: `quantum-learning-simulator`
+- Firebase Hosting domains:
+  - `https://quantum-learning-simulator.web.app`
+  - `https://quantum-learning-simulator.firebaseapp.com`
+- Cloud Run backend:
+  - `https://quantum-simulator-api-yw6cphsnrq-ew.a.run.app`
+
+The original backend remains a separate FastAPI service because Firebase
+Hosting cannot run Python/FastAPI directly.
+
+### Account safety
+
+Deployments must use the personal Google account:
+
+```text
+ja.appengineer@gmail.com
+```
+
+Before running any deploy command, verify:
+
+```bash
+firebase login:list
+gcloud auth list --filter=status:ACTIVE --format='value(account)'
+gcloud config get-value project
+```
+
+Expected values:
+
+```text
+Firebase account: ja.appengineer@gmail.com
+gcloud account:   ja.appengineer@gmail.com
+gcloud project:   quantum-learning-simulator
+```
+
+Do not deploy under any other account or project.
+
+### Frontend deployment
+
+The frontend is a Next.js App Router application that currently prerenders
+all public routes as static/SSG output.
+
+Firebase Hosting serves the static export generated in:
+
+```text
+frontend/out
+```
+
+Required public build-time variable:
+
+```bash
+NEXT_PUBLIC_QUANTUM_API_URL=https://<cloud-run-service-url>
+```
+
+Local development keeps using:
+
+```bash
+NEXT_PUBLIC_QUANTUM_API_URL=http://localhost:8000
+```
+
+Build and deploy:
+
+```bash
+cd frontend
+NEXT_PUBLIC_QUANTUM_API_URL=https://<cloud-run-service-url> npm run build
+cd ..
+firebase deploy --only hosting --project quantum-learning-simulator
+```
+
+### Backend deployment
+
+The backend is deployed to Cloud Run from `backend/Dockerfile`.
+
+Cloud Run must provide the `PORT` environment variable. The container starts:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}
+```
+
+Required production CORS origins:
+
+```bash
+CORS_ORIGINS=http://localhost:3000,https://quantum-learning-simulator.web.app,https://quantum-learning-simulator.firebaseapp.com
+```
+
+Deploy:
+
+```bash
+gcloud run deploy quantum-simulator-api \
+  --source backend \
+  --region europe-west1 \
+  --allow-unauthenticated \
+  --set-env-vars CORS_ORIGINS=http://localhost:3000,https://quantum-learning-simulator.web.app,https://quantum-learning-simulator.firebaseapp.com,SERVICE_NAME=quantum-simulator-api
+```
+
+After deployment, verify the backend before building the production frontend:
+
+```bash
+curl https://<cloud-run-service-url>/health
+```
+
+### Validation commands
+
+Frontend:
+
+```bash
+cd frontend
+npm run lint
+./node_modules/.bin/tsc --noEmit
+NEXT_PUBLIC_QUANTUM_API_URL=http://localhost:8000 npm run build
+npx --yes tsx --tsconfig tsconfig.json --test features/quantum/builder/math/quantum-simulator.test.ts
+npx --yes tsx --tsconfig tsconfig.json --test features/quantum/teleportation/math/teleportation-protocol.test.ts
+npx --yes tsx --tsconfig tsconfig.json --test features/quantum/grover/math/grover.test.ts
+```
+
+Backend:
+
+```bash
+cd backend
+python -m pytest tests/ -v
+```
+
+Container smoke check:
+
+```bash
+docker build -t quantum-simulator-api ./backend
+docker run --rm -p 8080:8080 -e PORT=8080 quantum-simulator-api
+curl http://localhost:8080/health
+```
+
+### Production verification checklist
+
+- Frontend URL loads.
+- Direct refresh works for `/builder`, `/theory`, `/theory/<conceptId>`,
+  `/teleportation`, and `/grover`.
+- Static assets, fonts, Tailwind styles, KaTeX, Plotly, Bloch Sphere 3D,
+  drag/drop, glossary and tooltips work.
+- Builder works in 1-qubit and 2-qubit modes.
+- Teleportation Lab and Grover Lab work without backend calls.
+- Hadamard and Bell experiments call Cloud Run, not localhost.
+- Browser console has no CORS errors.
+- `/health`, `/simulate/hadamard`, and `/simulate/bell-state` respond from
+  Cloud Run.
+- No credentials, service-account JSON files, private keys or `.env.local`
+  files are committed.
+
+---
+
 ## Descripción académica del prototipo inicial
 
 Este prototipo constituye la primera versión funcional del simulador
