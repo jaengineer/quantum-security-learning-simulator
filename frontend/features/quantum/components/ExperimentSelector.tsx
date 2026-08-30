@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+/* eslint-disable @next/next/no-html-link-for-pages -- Static exported Firebase Hosting needs full document navigation for these top-level cards. */
 
 import { ExperimentCard } from "@/features/quantum/components/ExperimentCard";
 import { QUANTUM_EXPERIMENTS } from "@/features/quantum/data/experiments";
@@ -40,9 +40,8 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-6">
-        <Link
+        <a
           href="/builder"
-          prefetch
           className="group flex flex-col gap-3 rounded-2xl border border-violet-300/70 bg-gradient-to-br from-violet-500/10 via-white to-cyan-500/10 p-6 shadow-sm transition hover:border-violet-500 hover:shadow-md sm:flex-row sm:items-center sm:justify-between dark:border-violet-500/40 dark:from-violet-500/15 dark:via-slate-900/40 dark:to-cyan-500/10"
         >
           <div className="flex flex-col gap-2">
@@ -62,11 +61,10 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
             Open the Builder
             <span aria-hidden>→</span>
           </span>
-        </Link>
+        </a>
 
-        <Link
+        <a
           href="/theory"
-          prefetch
           className="group flex flex-col gap-3 rounded-2xl border border-emerald-300/70 bg-gradient-to-br from-emerald-500/10 via-white to-sky-500/10 p-6 shadow-sm transition hover:border-emerald-500 hover:shadow-md sm:flex-row sm:items-center sm:justify-between dark:border-emerald-500/40 dark:from-emerald-500/15 dark:via-slate-900/40 dark:to-sky-500/10"
         >
           <div className="flex flex-col gap-2">
@@ -86,7 +84,7 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
             Open the Theory Lab
             <span aria-hidden>→</span>
           </span>
-        </Link>
+        </a>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -100,9 +98,8 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
         </div>
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-6">
-          <Link
+          <a
             href="/teleportation"
-            prefetch
             className="group flex flex-col gap-3 rounded-2xl border border-fuchsia-300/70 bg-gradient-to-br from-fuchsia-500/10 via-white to-violet-500/10 p-6 shadow-sm transition hover:border-fuchsia-500 hover:shadow-md sm:flex-row sm:items-center sm:justify-between dark:border-fuchsia-500/40 dark:from-fuchsia-500/15 dark:via-slate-900/40 dark:to-violet-500/10"
           >
             <div className="flex flex-col gap-2">
@@ -122,11 +119,10 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
               Open the Lab
               <span aria-hidden>→</span>
             </span>
-          </Link>
+          </a>
 
-          <Link
+          <a
             href="/grover"
-            prefetch
             className="group flex flex-col gap-3 rounded-2xl border border-violet-300/70 bg-gradient-to-br from-violet-500/10 via-white to-amber-500/10 p-6 shadow-sm transition hover:border-violet-500 hover:shadow-md sm:flex-row sm:items-center sm:justify-between dark:border-violet-500/40 dark:from-violet-500/15 dark:via-slate-900/40 dark:to-amber-500/10"
           >
             <div className="flex flex-col gap-2">
@@ -148,7 +144,7 @@ export function ExperimentSelector({ onSelect }: ExperimentSelectorProps) {
               Open the Lab
               <span aria-hidden>→</span>
             </span>
-          </Link>
+          </a>
         </div>
       </div>
     </section>
