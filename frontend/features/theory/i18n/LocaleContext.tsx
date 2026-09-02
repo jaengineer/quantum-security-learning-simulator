@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Theory Lab locale context.
+ * Application locale context.
  *
  * Strategy:
  *   - The locale lives in a tiny external store backed by ``localStorage``.
@@ -15,8 +15,8 @@
  *   - ``setLocale`` writes through the store, which persists to
  *     ``localStorage`` and notifies every listener so all consumers update.
  *
- * The context only powers the Theory Lab subtree. The rest of the app is
- * currently English-only.
+ * The context started in Theory Lab and is now shared by the public learning
+ * routes so language choice survives navigation and refreshes.
  */
 
 import {
@@ -35,12 +35,12 @@ import {
 } from "@/features/theory/i18n/strings";
 import { DEFAULT_LOCALE, type Locale } from "@/features/theory/i18n/types";
 
-const STORAGE_KEY = "theory-locale";
+export const LOCALE_STORAGE_KEY = "quantum-learning-locale";
 
 type Listener = () => void;
 
-// Module-level store. A single instance is enough because the Theory Lab
-// uses one global preference, shared across every page and component tree.
+// Module-level store. A single instance is enough because the app uses one
+// global preference, shared across every page and component tree.
 let memoryLocale: Locale | null = null;
 const listeners = new Set<Listener>();
 
@@ -48,7 +48,7 @@ function readBrowserLocale(): Locale {
   if (typeof window === "undefined") return DEFAULT_LOCALE;
   if (memoryLocale !== null) return memoryLocale;
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
     if (stored === "en" || stored === "es") {
       memoryLocale = stored;
       return stored;
@@ -81,7 +81,7 @@ function writeLocale(next: Locale): void {
   memoryLocale = next;
   if (typeof window !== "undefined") {
     try {
-      window.localStorage.setItem(STORAGE_KEY, next);
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
     } catch {
       // ignore
     }

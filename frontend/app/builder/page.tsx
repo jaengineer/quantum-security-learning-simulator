@@ -54,7 +54,10 @@ function BuilderSkeleton() {
 export default function BuilderPage() {
   return (
     <LearnableTooltipProvider>
-      <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14">
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14"
+      >
         <header className="flex flex-col gap-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             Interactive tool

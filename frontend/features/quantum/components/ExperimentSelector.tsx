@@ -9,7 +9,6 @@ const baseCardClasses =
 
 interface ExperimentSelectorProps {
   locale: Locale;
-  onLocaleChange: (locale: Locale) => void;
 }
 
 function ModuleCard({
@@ -58,35 +57,17 @@ function ModuleCard({
   );
 }
 
-export function ExperimentSelector({
-  locale,
-  onLocaleChange,
-}: ExperimentSelectorProps) {
+export function ExperimentSelector({ locale }: ExperimentSelectorProps) {
   return (
-    <section className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-              {getLocalizedText(HOME_COPY.eyebrow, locale)}
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-4xl">
-              {getLocalizedText(HOME_COPY.title, locale)}
-            </h1>
-          </div>
-          <label className="flex min-w-36 flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            {getLocalizedText(HOME_COPY.language, locale)}
-            <select
-              value={locale}
-              onChange={(event) => onLocaleChange(event.target.value as Locale)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm normal-case tracking-normal text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="en">English</option>
-              <option value="es">Español</option>
-            </select>
-          </label>
-        </div>
-        <p className="max-w-3xl text-base text-slate-600 dark:text-slate-300">
+    <section id="learning-modules" className="scroll-mt-24 flex flex-col gap-6">
+      <header className="flex flex-col gap-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          {getLocalizedText(HOME_COPY.eyebrow, locale)}
+        </p>
+        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
+          {getLocalizedText(HOME_COPY.title, locale)}
+        </h2>
+        <p className="mx-auto max-w-3xl text-base text-slate-600 dark:text-slate-300">
           {getLocalizedText(HOME_COPY.description, locale)}
         </p>
       </header>

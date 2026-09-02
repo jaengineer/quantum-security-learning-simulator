@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 
+import { PlatformShell } from "@/components/layout/PlatformShell";
+
 import "katex/dist/katex.min.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Quantum Security Learning Simulator",
   description:
-    "Interactive MVP for visualizing basic quantum computing concepts applied to information security.",
+    "Interactive educational platform for learning quantum computing through theory, simulation and visualization.",
 };
 
 export default function RootLayout({
@@ -16,7 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <PlatformShell>{children}</PlatformShell>
+      </body>
     </html>
   );
 }

@@ -18,10 +18,304 @@ export interface HomeSectionCopy {
   modules: readonly HomeModuleCopy[];
 }
 
+export interface NavLinkCopy {
+  href: string;
+  label: LocalizedText;
+}
+
+export interface ValuePropositionCopy {
+  id: "learn" | "experiment" | "visualize";
+  title: LocalizedText;
+  description: LocalizedText;
+}
+
+export interface MethodStepCopy {
+  id: "understand" | "experiment" | "observe" | "connect";
+  index: string;
+  title: LocalizedText;
+  description: LocalizedText;
+}
+
+export interface LearningPathNodeCopy {
+  id:
+    | "superposition"
+    | "entanglement"
+    | "grover"
+    | "teleportation"
+    | "builder"
+    | "theory";
+  href: string;
+  title: LocalizedText;
+  description: LocalizedText;
+}
+
+export type LearningPathEdge = readonly [
+  "superposition" | "entanglement",
+  "entanglement" | "grover" | "teleportation",
+];
+
+export const GLOBAL_NAV_COPY = {
+  brand: {
+    en: "Quantum Learning",
+    es: "Quantum Learning",
+  },
+  mobileMenu: {
+    en: "Open navigation menu",
+    es: "Abrir menú de navegación",
+  },
+  skipToContent: {
+    en: "Skip to content",
+    es: "Saltar al contenido",
+  },
+  closeMobileMenu: {
+    en: "Close navigation menu",
+    es: "Cerrar menú de navegación",
+  },
+  links: [
+    { href: "/#learning-modules", label: { en: "Learn", es: "Aprender" } },
+    { href: "/theory", label: { en: "Theory", es: "Theory Lab" } },
+    { href: "/builder", label: { en: "Builder", es: "Builder" } },
+    { href: "/#about", label: { en: "About", es: "Sobre la plataforma" } },
+  ],
+} as const;
+
+export const HOME_HERO = {
+  eyebrow: {
+    en: "Quantum Learning",
+    es: "Quantum Learning",
+  },
+  titleLineOne: {
+    en: "Quantum computing,",
+    es: "Computación cuántica,",
+  },
+  titleAccent: {
+    en: "visualized.",
+    es: "visualizada.",
+  },
+  description: {
+    en: "Learn the foundations of quantum computing through interactive simulations, circuits and educational laboratories.",
+    es: "Aprende los fundamentos de la computación cuántica mediante simulaciones, circuitos y laboratorios interactivos.",
+  },
+  primaryCta: {
+    en: "Start learning",
+    es: "Empezar a aprender",
+  },
+  secondaryCta: {
+    en: "Discover the platform",
+    es: "Descubrir la plataforma",
+  },
+  primaryCtaHref: "#learning-modules",
+  secondaryCtaHref: "#how-it-works",
+} as const;
+
+export const HOME_VALUE_COPY = {
+  eyebrow: {
+    en: "A platform for learning by doing",
+    es: "Una plataforma para aprender haciendo",
+  },
+} as const satisfies Record<string, LocalizedText>;
+
+export const HOME_VALUE_PROPOSITIONS = [
+  {
+    id: "learn",
+    title: { en: "Learn", es: "Aprende" },
+    description: {
+      en: "Explore quantum concepts and their mathematical foundations.",
+      es: "Explora conceptos cuánticos y sus fundamentos matemáticos.",
+    },
+  },
+  {
+    id: "experiment",
+    title: { en: "Experiment", es: "Experimenta" },
+    description: {
+      en: "Build circuits and run interactive simulations and protocols.",
+      es: "Construye circuitos y ejecuta simulaciones y protocolos interactivos.",
+    },
+  },
+  {
+    id: "visualize",
+    title: { en: "Visualize", es: "Visualiza" },
+    description: {
+      en: "Observe states, amplitudes, probabilities and measurement outcomes.",
+      es: "Observa estados, amplitudes, probabilidades y resultados de medición.",
+    },
+  },
+] as const satisfies readonly ValuePropositionCopy[];
+
+export const HOME_METHOD_COPY = {
+  eyebrow: {
+    en: "How it works",
+    es: "¿Cómo funciona?",
+  },
+} as const satisfies Record<string, LocalizedText>;
+
+export const HOME_METHOD_STEPS = [
+  {
+    id: "understand",
+    index: "01",
+    title: { en: "Understand", es: "Comprende" },
+    description: {
+      en: "Learn the concept and its mathematical foundation.",
+      es: "Aprende el concepto y su fundamento matemático.",
+    },
+  },
+  {
+    id: "experiment",
+    index: "02",
+    title: { en: "Experiment", es: "Experimenta" },
+    description: {
+      en: "Run simulations, manipulate circuits and explore protocols.",
+      es: "Ejecuta simulaciones, modifica circuitos y explora protocolos.",
+    },
+  },
+  {
+    id: "observe",
+    index: "03",
+    title: { en: "Observe", es: "Observa" },
+    description: {
+      en: "Analyze states, amplitudes, probabilities and measurements.",
+      es: "Analiza estados, amplitudes, probabilidades y mediciones.",
+    },
+  },
+  {
+    id: "connect",
+    index: "04",
+    title: { en: "Connect", es: "Conecta" },
+    description: {
+      en: "Relate each lab to other concepts and continue learning.",
+      es: "Relaciona cada laboratorio con otros conceptos y sigue aprendiendo.",
+    },
+  },
+] as const satisfies readonly MethodStepCopy[];
+
+export const HOME_LEARNING_PATH = {
+  copy: {
+    eyebrow: {
+      en: "Recommended learning path",
+      es: "Ruta de aprendizaje recomendada",
+    },
+    description: {
+      en: "Follow a conceptual path without locked modules. Builder and Theory Lab support the whole learning process.",
+      es: "Sigue un recorrido conceptual sin módulos bloqueados. Builder y Theory Lab acompañan todo el aprendizaje.",
+    },
+    toolsLabel: {
+      en: "Transversal tools",
+      es: "Herramientas transversales",
+    },
+    superpositionToEntanglement: {
+      en: "correlated quantum states",
+      es: "estados cuánticos correlacionados",
+    },
+    superpositionToGrover: {
+      en: "amplitude manipulation",
+      es: "manipulación de amplitudes",
+    },
+    groverBranch: {
+      en: "Also from Superposition",
+      es: "También desde Superposición",
+    },
+    entanglementToTeleportation: {
+      en: "protocol resource",
+      es: "recurso del protocolo",
+    },
+  },
+  nodes: [
+    {
+      id: "superposition",
+      href: "/superposition",
+      title: { en: "Superposition", es: "Superposición" },
+      description: { en: "1 qubit", es: "1 qubit" },
+    },
+    {
+      id: "entanglement",
+      href: "/entanglement",
+      title: { en: "Entanglement", es: "Entrelazamiento" },
+      description: { en: "2 qubits", es: "2 qubits" },
+    },
+    {
+      id: "grover",
+      href: "/grover",
+      title: { en: "Grover Algorithm", es: "Algoritmo de Grover" },
+      description: { en: "2 qubits", es: "2 qubits" },
+    },
+    {
+      id: "teleportation",
+      href: "/teleportation",
+      title: {
+        en: "Quantum Teleportation",
+        es: "Teleportación cuántica",
+      },
+      description: { en: "3 qubits", es: "3 qubits" },
+    },
+    {
+      id: "builder",
+      href: "/builder",
+      title: { en: "Quantum Circuit Builder", es: "Quantum Circuit Builder" },
+      description: {
+        en: "Circuit practice",
+        es: "Práctica con circuitos",
+      },
+    },
+    {
+      id: "theory",
+      href: "/theory",
+      title: { en: "Theory Lab", es: "Theory Lab" },
+      description: {
+        en: "Conceptual reference",
+        es: "Referencia conceptual",
+      },
+    },
+  ],
+  edges: [
+    ["superposition", "entanglement"],
+    ["superposition", "grover"],
+    ["entanglement", "teleportation"],
+  ],
+  transversalTools: ["builder", "theory"],
+} as const;
+
+export const HOME_ABOUT = {
+  eyebrow: {
+    en: "About the platform",
+    es: "Sobre la plataforma",
+  },
+  title: {
+    en: "Theory, simulation and visualization in one learning space.",
+    es: "Teoría, simulación y visualización en un único espacio de aprendizaje.",
+  },
+  description: {
+    en: "Quantum Learning combines conceptual explanations, interactive visualization and quantum simulation to make fundamental quantum computing ideas easier to explore and understand.",
+    es: "Quantum Learning combina explicaciones conceptuales, visualización interactiva y simulación cuántica para facilitar la exploración y comprensión de los conceptos fundamentales de la computación cuántica.",
+  },
+  thesis: {
+    en: "Developed as part of a Master's Thesis in Quantum Computing.",
+    es: "Desarrollado como parte de un Trabajo Fin de Máster en Computación Cuántica.",
+  },
+} as const satisfies Record<string, LocalizedText>;
+
+export const HOME_FOOTER = {
+  product: {
+    en: "Quantum Learning",
+    es: "Quantum Learning",
+  },
+  tagline: {
+    en: "Learn · Experiment · Understand",
+    es: "Aprende · Experimenta · Comprende",
+  },
+  builtWith: {
+    en: "Built with Next.js, Qiskit and FastAPI.",
+    es: "Construido con Next.js, Qiskit y FastAPI.",
+  },
+  thesis: {
+    en: "Master's Thesis",
+    es: "Trabajo Fin de Máster",
+  },
+} as const satisfies Record<string, LocalizedText>;
+
 export const HOME_COPY = {
   eyebrow: {
-    en: "Master's Thesis Prototype",
-    es: "Prototipo de Trabajo Fin de Máster",
+    en: "Learning modules",
+    es: "Módulos de aprendizaje",
   },
   title: {
     en: "Choose your quantum learning module",
