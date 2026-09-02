@@ -1,27 +1,27 @@
-# Quantum Security Learning Simulator
+# Quantum Learning
 
-> Interactive MVP for visualizing basic quantum computing concepts applied to information security.
+> Interactive educational platform for learning quantum computing through theory, simulation and visualization.
 
 Interactive educational platform for visualizing quantum computing concepts
 applied to information security using Qiskit, Next.js and FastAPI.
 
-This repository contains the prototype of a web platform developed for a
-Master's Thesis (TFM) in Quantum Computing. It now exposes a modular learning
-platform: foundational labs for superposition and entanglement, routed
-algorithm/protocol labs, transversal learning tools, and a FastAPI/Qiskit
+This repository contains a web platform developed for a Master's Thesis (TFM)
+in Quantum Computing. It exposes a modular learning experience: foundational
+labs for superposition and entanglement, routed algorithm/protocol labs,
+transversal learning tools, a guided educational Home, and a FastAPI/Qiskit
 backend for the original MVP simulations.
 
 ---
 
-## MVP architecture (v2: Experiment Selector)
+## Current learning platform
 
 ### Objective
 
-To validate, end-to-end, the integration between a Next.js frontend, a
-FastAPI backend and a Qiskit simulation engine through a *menu of
-experiments*, each one configurable and didactically commented. The first
-two experiments (Superposition and Entanglement) are fully functional; the
-other two are advertised as the roadmap of the MVP.
+To provide an educational learning platform that combines concept explanation,
+interactive quantum laboratories, circuit construction and visualization. The
+current Home introduces the platform, groups the six public modules by learning
+purpose, explains the methodology and exposes a recommended conceptual path
+without user tracking or forced progression.
 
 ### Application flow
 
@@ -77,6 +77,18 @@ flowchart TD
 | Grover Algorithm Lab | `/grover` | 2 | Guided frontend lab for 2-qubit Grover search. |
 | Quantum Circuit Builder | `/builder` | 1-2 | Transversal circuit-building and local simulation tool. |
 | Theory Lab | `/theory` | - | Curated EN/ES conceptual reference. |
+
+### AE-phase13: Learning Experience & Final Consolidation
+
+AE-phase13 consolidates the application as an educational product rather than
+adding a new quantum algorithm. It introduces a lightweight global navigation
+header, app-wide EN/ES locale persistence, an educational Home with Hero,
+methodology, recommended learning path and About section, plus accessibility
+improvements such as semantic navigation, skip link, visible focus states and
+reduced-motion-friendly decorative visuals.
+
+The educational evaluation design is documented in
+[`docs/EVALUATION_METHODOLOGY.md`](docs/EVALUATION_METHODOLOGY.md).
 
 ### Screenshots
 

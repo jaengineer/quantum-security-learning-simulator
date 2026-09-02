@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 
 import { GlossaryFab } from "@/features/overlays/glossary/GlossaryFab";
 import { LearnableTooltipProvider } from "@/features/overlays/tooltip/LearnableTooltip";
 import { GroverLab } from "@/features/quantum/grover/components/GroverLab";
 import { GROVER_UI_STRINGS } from "@/features/quantum/grover/i18n/strings";
+import { useLocale } from "@/features/theory/i18n/LocaleContext";
 import type { Locale } from "@/features/theory/i18n/types";
 
 function t(locale: Locale, key: keyof typeof GROVER_UI_STRINGS): string {
@@ -14,11 +14,14 @@ function t(locale: Locale, key: keyof typeof GROVER_UI_STRINGS): string {
 }
 
 export default function GroverPage() {
-  const [locale, setLocale] = useState<Locale>("en");
+  const { locale, setLocale } = useLocale();
 
   return (
     <LearnableTooltipProvider>
-      <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14">
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14"
+      >
         <header className="flex flex-col gap-3">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-300">
             {t(locale, "eyebrow")}

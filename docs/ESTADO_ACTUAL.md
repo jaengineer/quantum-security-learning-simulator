@@ -1,9 +1,9 @@
 # Estado actual de la plataforma — Quantum Security Learning Simulator
 
 > Documento técnico + funcional. Refleja el estado del repositorio tras
-> **AE-phase12 — Foundations Labs & Learning Path**, que consolida los
-> experimentos MVP originales como laboratorios dedicados y reorganiza la Home
-> como itinerario pedagógico.
+> **AE-phase13 — Learning Experience & Final Consolidation**, que consolida la
+> aplicación como plataforma educativa con navegación global, Home pedagógica,
+> ruta de aprendizaje recomendada y preparación para evaluación.
 
 ---
 
@@ -46,20 +46,38 @@ helpers TypeScript testeables.
 
 ## 2. Módulos de la plataforma
 
-### 2.1 Home y estructura de navegación
+### 2.1 Home, navegación global y experiencia educativa
 
-La home (`frontend/app/page.tsx`) deja de presentar los experimentos MVP como
-un flujo separado renderizado por estado React y pasa a organizar toda la
-plataforma en tres categorías pedagógicas:
+La home (`frontend/app/page.tsx`) funciona como landing educativa. Presenta:
+
+- Hero con mensaje principal **Quantum computing, visualized.** y visual
+  ligero inspirado en Bloch Sphere, implementado con SVG/CSS sin cargar Three.js.
+- Introducción compacta **Understand / Experiment / Visualize**.
+- Sección de módulos de aprendizaje organizada en tres categorías pedagógicas:
 
 - **Foundations**: Superposición y Entrelazamiento.
 - **Algorithms & Protocols**: Quantum Teleportation y Grover's Algorithm.
 - **Learning Tools**: Quantum Circuit Builder y Theory Lab.
+- Explicación metodológica **Understand → Experiment → Observe → Connect**.
+- Ruta conceptual recomendada: Superposition se ramifica hacia Entanglement y
+  Grover; Entanglement conecta con Teleportation; Builder y Theory Lab actúan
+  como herramientas transversales.
+- Sección `#about` con explicación del producto y mención secundaria al TFM.
+- Footer de producto.
 
 La reorganización es de arquitectura de información, no de sistema visual: se
 preservan las tarjetas, escala tipográfica, bordes, sombras, colores y
 comportamiento responsive existentes. Todas las tarjetas principales navegan a
 rutas absolutas compatibles con el despliegue estático en Firebase Hosting.
+
+La navegación global se monta desde `frontend/app/layout.tsx` mediante
+`PlatformShell`, con `GlobalHeader`, selector EN/ES compartido, skip link,
+`aria-current` y menú móvil accesible. Los enlaces contextuales de cada
+laboratorio se conservan cuando siguen ayudando a la orientación local.
+
+El idioma activo se gestiona con el `LocaleProvider` existente, ahora aplicado a
+la app pública completa. La preferencia se guarda en `localStorage` y sincroniza
+`document.documentElement.lang` para preservar coherencia al navegar o refrescar.
 
 ### 2.2 Foundations Labs (`/superposition`, `/entanglement`)
 
@@ -201,7 +219,25 @@ Visualizaciones:
 El laboratorio también incluye internacionalización completa en inglés y
 español, y tests matemáticos para todos los objetivos y etapas.
 
-### 2.6 Theory Lab (`/theory`)
+### 2.6 Evaluación educativa
+
+AE-phase13 añade `docs/EVALUATION_METHODOLOGY.md` como base externa para la
+evaluación del TFM. El documento define:
+
+- objetivo de evaluación;
+- perfil de participantes;
+- escenarios para Superposition, Entanglement, Teleportation, Grover y Builder;
+- preguntas pre/post;
+- criterios de finalización de tareas;
+- preguntas Likert;
+- observación cualitativa;
+- uso opcional de SUS;
+- métricas y estructura recomendada para Resultados/Discusión.
+
+La evaluación queda fuera de la aplicación: no se añaden analytics, tracking,
+encuestas embebidas, bases de datos ni almacenamiento de datos de participantes.
+
+### 2.7 Theory Lab (`/theory`)
 
 Theory Lab es el módulo de referencia conceptual. Proporciona catálogo,
 búsqueda, filtros, detalle por concepto e internacionalización EN/ES.

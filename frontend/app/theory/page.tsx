@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { TheoryLabClient } from "@/features/theory/components/TheoryLabClient";
-import { LocaleProvider } from "@/features/theory/i18n/LocaleContext";
 
 export const metadata: Metadata = {
   title: "Theory Lab · Quantum Theory Trainer",
@@ -11,10 +10,11 @@ export const metadata: Metadata = {
 
 export default function TheoryPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14">
-      <LocaleProvider>
-        <TheoryLabClient />
-      </LocaleProvider>
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-6 py-10 sm:py-14"
+    >
+      <TheoryLabClient />
     </main>
   );
 }
