@@ -19,6 +19,12 @@ export const THEORY_UI_STRINGS = {
 
   // Filters
   filters_heading: { en: "Filters", es: "Filtros" },
+  filters_toggle: { en: "Filters", es: "Filtros" },
+  active_filters: { en: "Active filters", es: "Filtros activos" },
+  clear_all: { en: "Clear all", es: "Limpiar todo" },
+  remove_filter: { en: "Remove filter", es: "Quitar filtro" },
+  show_all_tags: { en: "Show all tags", es: "Mostrar todas las etiquetas" },
+  show_fewer_tags: { en: "Show fewer", es: "Mostrar menos" },
   filter_category: { en: "Category", es: "Categoría" },
   filter_level: { en: "Level", es: "Nivel" },
   filter_notation: { en: "Notation", es: "Notación" },
@@ -36,6 +42,10 @@ export const THEORY_UI_STRINGS = {
   },
   results_count_one: { en: "concept", es: "concepto" },
   results_count_other: { en: "concepts", es: "conceptos" },
+  results_heading: { en: "Explore concepts", es: "Explora los conceptos" },
+  results_found_one: { en: "concept found", es: "concepto encontrado" },
+  results_found_other: { en: "concepts found", es: "conceptos encontrados" },
+  back_to_learn: { en: "Back to Learn", es: "Volver a Aprender" },
 
   // Categories
   category_linear_algebra: { en: "Linear algebra", es: "Álgebra lineal" },

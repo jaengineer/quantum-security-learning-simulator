@@ -52,11 +52,9 @@ export function ExamQuestionBlock({
   const hints = getLocalizedArray(question.hints, locale);
 
   const handleReveal = () => {
-    setRevealed((previous) => {
-      const next = !previous;
-      if (next && onReviewed) onReviewed(question.id);
-      return next;
-    });
+    const next = !revealed;
+    setRevealed(next);
+    if (next) onReviewed?.(question.id);
   };
 
   const toggleHint = (i: number) => {

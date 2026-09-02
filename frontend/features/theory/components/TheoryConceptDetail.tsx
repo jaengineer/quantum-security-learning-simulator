@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { CategoryBadge } from "@/features/theory/components/CategoryBadge";
 import { FormulaBlock } from "@/features/theory/components/FormulaBlock";
-import { LanguageSwitcher } from "@/features/theory/components/LanguageSwitcher";
 import { LevelBadge } from "@/features/theory/components/LevelBadge";
 import { NotationBadge } from "@/features/theory/components/NotationBadge";
 import { RelatedConcepts } from "@/features/theory/components/RelatedConcepts";
@@ -43,7 +42,6 @@ export function TheoryConceptDetail({
           >
             ← {t("back_to_catalog")}
           </Link>
-          <LanguageSwitcher />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

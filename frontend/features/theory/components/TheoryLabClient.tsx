@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { LanguageSwitcher } from "@/features/theory/components/LanguageSwitcher";
 import {
   INITIAL_FILTER_STATE,
   TheoryFilters,
@@ -16,6 +15,7 @@ import {
   getAllTags,
   projectConcept,
 } from "@/features/theory/content";
+import { hasAnyFilter } from "@/features/theory/filterUtils";
 import { useLocale, useT } from "@/features/theory/i18n/LocaleContext";
 
 /**
@@ -55,13 +55,17 @@ export function TheoryLabClient() {
     }).map((concept) => projectConcept(concept, locale));
   }, [filters, locale]);
 
-  const countLabel =
-    visibleConcepts.length === 1
+  const filtered = hasAnyFilter(filters);
+  const countLabel = filtered
+    ? visibleConcepts.length === 1
+      ? t("results_found_one")
+      : t("results_found_other")
+    : visibleConcepts.length === 1
       ? t("results_count_one")
       : t("results_count_other");
 
   return (
-    <section className="flex flex-col gap-8">
+    <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-col gap-2">
@@ -75,32 +79,32 @@ export function TheoryLabClient() {
               {t("page_subtitle")}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <LanguageSwitcher />
-            <Link
-              href="/"
-              prefetch
-              className="text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline dark:text-slate-400 dark:hover:text-slate-100"
-            >
-              ← {locale === "es" ? "Volver al simulador" : "Back to simulator"}
-            </Link>
-          </div>
+          <Link
+            href="/#learning-modules"
+            prefetch
+            className="text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            ← {t("back_to_learn")}
+          </Link>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[18rem,1fr]">
-        <aside className="lg:sticky lg:top-6 lg:self-start">
-          <TheoryFilters
-            state={filters}
-            onChange={setFilters}
-            availableTags={allTags}
-          />
-        </aside>
+      <div className="flex flex-col gap-4">
+        <TheoryFilters
+          state={filters}
+          onChange={setFilters}
+          availableTags={allTags}
+        />
 
         <div className="flex flex-col gap-4">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            {visibleConcepts.length} {countLabel}
-          </p>
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              {t("results_heading")}
+            </h2>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+              {visibleConcepts.length} {countLabel}
+            </p>
+          </div>
           <TheoryConceptList concepts={visibleConcepts} />
         </div>
       </div>
