@@ -14,7 +14,7 @@ function t(locale: Locale, key: keyof typeof TELEPORTATION_UI_STRINGS): string {
 }
 
 export default function TeleportationPage() {
-  const { locale, setLocale } = useLocale();
+  const { locale } = useLocale();
 
   return (
     <LearnableTooltipProvider>
@@ -45,7 +45,7 @@ export default function TeleportationPage() {
           </div>
         </header>
 
-        <TeleportationLab locale={locale} onLocaleChange={setLocale} />
+        <TeleportationLab locale={locale} />
       </main>
 
       <GlossaryFab />

@@ -20,7 +20,6 @@
  */
 
 import * as Tooltip from "@radix-ui/react-tooltip";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
@@ -105,14 +104,13 @@ export function LearnableTooltip({
             </div>
           ) : null}
           {conceptId ? (
-            <Link
+            <a
               href={`/theory/${conceptId}`}
-              prefetch
               className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-violet-600 underline-offset-2 hover:underline dark:text-violet-300"
             >
               Open in Theory Lab
               <span aria-hidden>→</span>
-            </Link>
+            </a>
           ) : null}
           <Tooltip.Arrow className="fill-white stroke-slate-200 dark:fill-slate-900 dark:stroke-slate-700" />
         </Tooltip.Content>

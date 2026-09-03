@@ -8,6 +8,7 @@ import type { LocalizedText } from "@/features/theory/i18n/types";
 export interface TeleportationInputState {
   id: "zero" | "one" | "plus" | "minus" | "plus-i" | "minus-i";
   label: string;
+  latex: string;
   description: LocalizedText;
   state: SingleQubitState;
   bloch: BlochVector;
@@ -19,6 +20,7 @@ export const TELEPORTATION_INPUT_STATES: readonly TeleportationInputState[] = [
   {
     id: "zero",
     label: "|0⟩",
+    latex: "\\lvert 0\\rangle",
     description: {
       en: "North pole basis state.",
       es: "Estado base del polo norte.",
@@ -29,6 +31,7 @@ export const TELEPORTATION_INPUT_STATES: readonly TeleportationInputState[] = [
   {
     id: "one",
     label: "|1⟩",
+    latex: "\\lvert 1\\rangle",
     description: {
       en: "South pole basis state.",
       es: "Estado base del polo sur.",
@@ -39,6 +42,7 @@ export const TELEPORTATION_INPUT_STATES: readonly TeleportationInputState[] = [
   {
     id: "plus",
     label: "|+⟩",
+    latex: "\\lvert +\\rangle",
     description: {
       en: "Equal superposition on the +X axis.",
       es: "Superposición equilibrada en el eje +X.",
@@ -49,6 +53,7 @@ export const TELEPORTATION_INPUT_STATES: readonly TeleportationInputState[] = [
   {
     id: "minus",
     label: "|−⟩",
+    latex: "\\lvert -\\rangle",
     description: {
       en: "Equal superposition on the -X axis.",
       es: "Superposición equilibrada en el eje -X.",
@@ -59,6 +64,7 @@ export const TELEPORTATION_INPUT_STATES: readonly TeleportationInputState[] = [
   {
     id: "plus-i",
     label: "|+i⟩",
+    latex: "\\lvert +i\\rangle",
     description: {
       en: "Equal superposition on the +Y axis.",
       es: "Superposición equilibrada en el eje +Y.",
@@ -69,6 +75,7 @@ export const TELEPORTATION_INPUT_STATES: readonly TeleportationInputState[] = [
   {
     id: "minus-i",
     label: "|−i⟩",
+    latex: "\\lvert -i\\rangle",
     description: {
       en: "Equal superposition on the -Y axis.",
       es: "Superposición equilibrada en el eje -Y.",

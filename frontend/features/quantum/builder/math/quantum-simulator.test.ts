@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { simulate } from "@/features/quantum/builder/math/quantum-simulator";
+import { SINGLE_QUBIT_GATE_ORDER } from "@/features/quantum/builder/math/quantum-gates";
 import type {
   GateId,
   GateInstance,
@@ -26,6 +27,14 @@ function gate(
 
 function single(gateId: GateId, targetQubit: QubitIndex): GateInstance {
   return gate(gateId, { targetQubit });
+}
+
+function singleWithTheta(
+  gateId: GateId,
+  targetQubit: QubitIndex,
+  theta = Math.PI / 3
+): GateInstance {
+  return gate(gateId, { targetQubit, params: { theta } });
 }
 
 function singleAny(gateId: GateId, targetQubit: 0 | 1 | 2): GateInstance {
@@ -123,6 +132,48 @@ test("X(q1)|00> produces |01> and remains separable", () => {
   assertClose(result.entanglement?.concurrence ?? NaN, 0, "concurrence");
 });
 
+test("every single-qubit Builder gate preserves explicit q0 and q1 targets", () => {
+  for (const gateId of SINGLE_QUBIT_GATE_ORDER) {
+    for (const targetQubit of [0, 1] as const) {
+      const placed =
+        gateId === "Rx" || gateId === "Ry" || gateId === "Rz"
+          ? singleWithTheta(gateId, targetQubit)
+          : single(gateId, targetQubit);
+      const result = simulate(2, [placed]);
+
+      assert.equal(result.steps[0].gate.gateId, gateId);
+      assert.equal(result.steps[0].gate.targetQubit, targetQubit);
+      if (placed.params) {
+        assert.equal(result.steps[0].gate.params?.theta, placed.params.theta);
+      }
+    }
+  }
+});
+
+test("X(q1) followed by S(q1) phases |01> into i|01>", () => {
+  const result = simulate(2, [single("X", 1), single("S", 1)]);
+
+  assertTwoQubitState(result.finalState as TwoQubitState, [
+    { re: 0, im: 0 },
+    { re: 0, im: 1 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+  ]);
+  assertTwoQubitProbabilities(result.finalProbabilities, [0, 1, 0, 0]);
+});
+
+test("X(q1) followed by S(q0) leaves |01> unchanged", () => {
+  const result = simulate(2, [single("X", 1), single("S", 0)]);
+
+  assertTwoQubitState(result.finalState as TwoQubitState, [
+    { re: 0, im: 0 },
+    { re: 1, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+  ]);
+  assertTwoQubitProbabilities(result.finalProbabilities, [0, 1, 0, 0]);
+});
+
 test("independent H(q0), H(q1) superpositions are not entangled", () => {
   const result = simulate(2, [single("H", 0), single("H", 1)]);
 
@@ -180,6 +231,22 @@ test("SWAP exchanges |01> and |10>", () => {
     { re: 0, im: 0 },
     { re: 0, im: 0 },
   ]);
+});
+
+test("CZ applies a phase only to the joint |11> branch", () => {
+  const result = simulate(2, [
+    single("X", 0),
+    single("X", 1),
+    controlled("CZ", 0, 1),
+  ]);
+
+  assertTwoQubitState(result.finalState as TwoQubitState, [
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: 0, im: 0 },
+    { re: -1, im: 0 },
+  ]);
+  assertTwoQubitProbabilities(result.finalProbabilities, [0, 0, 0, 1]);
 });
 
 test("H(q2)|000> creates superposition on least-significant qubit", () => {
