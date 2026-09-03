@@ -31,6 +31,7 @@ import { QUANTUM_ENTANGLEMENT } from "@/features/theory/content/quantum-entangle
 import { QUANTUM_ORACLE } from "@/features/theory/content/quantum-oracle";
 import { QUANTUM_TELEPORTATION } from "@/features/theory/content/quantum-teleportation";
 import { REDUCED_DENSITY_MATRIX } from "@/features/theory/content/reduced-density-matrix";
+import { SHOR_ALGORITHM } from "@/features/theory/content/shor-algorithm";
 import { SPECTRAL_THEOREM } from "@/features/theory/content/spectral-theorem";
 import { UNITARY_MATRICES } from "@/features/theory/content/unitary-matrices";
 import { UNIT_ROOTS } from "@/features/theory/content/unit-roots";
@@ -47,6 +48,7 @@ export const THEORY_CONCEPTS_RAW: readonly TheoryConcept[] = [
   QUANTUM_TELEPORTATION,
   FIDELITY,
   GROVER_ALGORITHM,
+  SHOR_ALGORITHM,
   QUANTUM_ORACLE,
   AMPLITUDE_AMPLIFICATION,
   DIFFUSION_OPERATOR,

@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { CategoryBadge } from "@/features/theory/components/CategoryBadge";
 import { LevelBadge } from "@/features/theory/components/LevelBadge";
 import { getLocalizedText } from "@/features/theory/i18n/helpers";
@@ -26,16 +24,15 @@ export function RelatedConcepts({ concepts }: RelatedConceptsProps) {
       <ul className="flex flex-wrap gap-2">
         {concepts.map((concept) => (
           <li key={concept.id}>
-            <Link
+            <a
               href={`/theory/${concept.id}`}
-              prefetch
               className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-400 hover:text-violet-700 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:border-violet-400 dark:hover:text-violet-300"
             >
               <CategoryBadge category={concept.category} />
               <LevelBadge level={concept.level} />
               <span>{getLocalizedText(concept.title, locale)}</span>
               <span aria-hidden>→</span>
-            </Link>
+            </a>
           </li>
         ))}
       </ul>

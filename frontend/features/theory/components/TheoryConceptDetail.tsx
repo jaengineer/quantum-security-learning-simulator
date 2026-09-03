@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-
+import { QuantumFormula } from "@/components/quantum/QuantumFormula";
 import { CategoryBadge } from "@/features/theory/components/CategoryBadge";
 import { FormulaBlock } from "@/features/theory/components/FormulaBlock";
 import { LevelBadge } from "@/features/theory/components/LevelBadge";
@@ -11,7 +10,10 @@ import { SelfAssessmentQuiz } from "@/features/theory/components/SelfAssessmentQ
 import { WorkedExampleBlock } from "@/features/theory/components/WorkedExampleBlock";
 import { getLocalizedArray, getLocalizedText } from "@/features/theory/i18n/helpers";
 import { useLocale, useT } from "@/features/theory/i18n/LocaleContext";
-import type { TheoryConcept } from "@/features/theory/types";
+import type {
+  TheoryConcept,
+  TheoryRichTextBlock,
+} from "@/features/theory/types";
 
 interface TheoryConceptDetailProps {
   concept: TheoryConcept;
@@ -35,13 +37,14 @@ export function TheoryConceptDetail({
     <article className="flex flex-col gap-8">
       <header className="flex flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <Link
+          {/* Static export on Firebase needs browser navigation instead of Next route interception. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a
             href="/theory"
-            prefetch
             className="text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline dark:text-slate-400 dark:hover:text-slate-100"
           >
             ← {t("back_to_catalog")}
-          </Link>
+          </a>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -78,9 +81,13 @@ export function TheoryConceptDetail({
 
       <Section title={t("section_formal_definition")}>
         <Card>
-          <p className="text-sm leading-relaxed text-slate-800 dark:text-slate-100">
-            {getLocalizedText(concept.formalDefinition, locale)}
-          </p>
+          {concept.formalDefinitionBlocks ? (
+            <RichTextBlocks blocks={concept.formalDefinitionBlocks} />
+          ) : (
+            <p className="text-sm leading-relaxed text-slate-800 dark:text-slate-100">
+              {getLocalizedText(concept.formalDefinition, locale)}
+            </p>
+          )}
         </Card>
       </Section>
 
@@ -91,6 +98,23 @@ export function TheoryConceptDetail({
           </p>
         </Card>
       </Section>
+
+      {concept.extendedSections?.map((section, index) => (
+        <Section
+          key={`${concept.id}-extended-${index}`}
+          title={getLocalizedText(section.title, locale)}
+        >
+          <Card>
+            {section.blocks ? (
+              <RichTextBlocks blocks={section.blocks} />
+            ) : (
+              <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                {getLocalizedText(section.content, locale)}
+              </p>
+            )}
+          </Card>
+        </Section>
+      ))}
 
       {concept.formulas.length > 0 ? (
         <Section title={t("section_formulas")}>
@@ -166,6 +190,46 @@ function Section({ title, children }: SectionProps) {
       </h2>
       {children}
     </section>
+  );
+}
+
+function RichTextBlocks({ blocks }: { blocks: TheoryRichTextBlock[] }) {
+  const { locale } = useLocale();
+
+  return (
+    <div className="flex flex-col gap-3 text-sm leading-relaxed text-slate-800 dark:text-slate-100">
+      {blocks.map((block, blockIndex) => (
+        <div
+          key={blockIndex}
+          className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1"
+        >
+          {block.segments.map((segment, segmentIndex) => {
+            if (segment.kind === "text") {
+              return (
+                <span key={segmentIndex}>
+                  {getLocalizedText(segment.text, locale)}
+                </span>
+              );
+            }
+
+            return (
+              <QuantumFormula
+                key={segmentIndex}
+                expression={segment.latex}
+                displayMode={segment.displayMode ?? "inline"}
+                ariaLabel={
+                  segment.ariaLabel
+                    ? getLocalizedText(segment.ariaLabel, locale)
+                    : undefined
+                }
+                size={segment.displayMode === "block" ? "md" : "inherit"}
+                className={segment.displayMode === "block" ? "w-full" : ""}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
   );
 }
 

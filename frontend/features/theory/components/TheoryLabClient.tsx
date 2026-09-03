@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
@@ -79,13 +78,14 @@ export function TheoryLabClient() {
               {t("page_subtitle")}
             </p>
           </div>
-          <Link
+          {/* Static export on Firebase needs browser navigation instead of Next route interception. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a
             href="/#learning-modules"
-            prefetch
             className="text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 dark:text-slate-400 dark:hover:text-slate-100"
           >
             ← {t("back_to_learn")}
-          </Link>
+          </a>
         </div>
       </header>
 

@@ -66,6 +66,28 @@ export interface ExamQuestion {
   hints: LocalizedStringArray;
 }
 
+export interface TheoryExtendedSection {
+  title: LocalizedText;
+  content: LocalizedText;
+  blocks?: TheoryRichTextBlock[];
+}
+
+export type TheoryRichTextSegment =
+  | {
+      kind: "text";
+      text: LocalizedText;
+    }
+  | {
+      kind: "formula";
+      latex: string;
+      displayMode?: "inline" | "block";
+      ariaLabel?: LocalizedText;
+    };
+
+export interface TheoryRichTextBlock {
+  segments: TheoryRichTextSegment[];
+}
+
 export interface TheoryConcept {
   /** Stable slug used as URL segment. Locale-agnostic. */
   id: string;
@@ -81,9 +103,11 @@ export interface TheoryConcept {
   summary: LocalizedText;
   learningObjectives: LocalizedStringArray;
   formalDefinition: LocalizedText;
+  formalDefinitionBlocks?: TheoryRichTextBlock[];
   intuitiveExplanation: LocalizedText;
   geometricOrPhysicalInterpretation?: LocalizedText;
   examRelevance: LocalizedText;
+  extendedSections?: TheoryExtendedSection[];
 
   formulas: TheoryFormula[];
   workedExamples: WorkedExample[];
