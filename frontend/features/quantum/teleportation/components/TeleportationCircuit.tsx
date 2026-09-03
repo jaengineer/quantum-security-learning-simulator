@@ -5,17 +5,20 @@ import type {
   AliceMeasurementOutcome,
   CorrectionLabel,
 } from "@/features/quantum/teleportation/math/teleportation-protocol";
+import type { TeleportationCircuitColumnId } from "@/features/quantum/teleportation/data/protocolPhases";
 import type { Locale } from "@/features/theory/i18n/types";
 
 type TeleportationStringKey = keyof typeof TELEPORTATION_UI_STRINGS;
 type CircuitWire = "q0" | "q1" | "q2";
 
 interface CircuitColumn {
-  id: string;
+  id: TeleportationCircuitColumnId;
   labelKey: TeleportationStringKey;
 }
 
 interface TeleportationCircuitProps {
+  activeColumnIds?: readonly TeleportationCircuitColumnId[];
+  completedColumnIds?: readonly TeleportationCircuitColumnId[];
   correctionLabel: CorrectionLabel;
   locale: Locale;
   outcome: AliceMeasurementOutcome;
@@ -45,6 +48,8 @@ const CIRCUIT_COLUMNS = [
   { id: "correct", labelKey: "circuit_correct" },
 ] as const satisfies readonly CircuitColumn[];
 
+type CircuitColumnState = "active" | "completed" | "future";
+
 const WIRE_LABELS = {
   q0: "wire_q0",
   q1: "wire_q1",
@@ -62,6 +67,8 @@ function columnX(columnIndex: number): number {
 }
 
 export function TeleportationCircuit({
+  activeColumnIds = [],
+  completedColumnIds = [],
   correctionLabel,
   locale,
   outcome,
@@ -71,6 +78,12 @@ export function TeleportationCircuit({
   const correctionX = columnX(7);
   const bitsY = (WIRE_Y.q0 + WIRE_Y.q1) / 2;
   const recoveredX = TIMELINE_WIDTH - 34;
+  const stateForColumn = (id: TeleportationCircuitColumnId): CircuitColumnState =>
+    activeColumnIds.includes(id)
+      ? "active"
+      : completedColumnIds.includes(id)
+        ? "completed"
+        : "future";
 
   return (
     <div
@@ -93,6 +106,7 @@ export function TeleportationCircuit({
             <ColumnHeader
               key={column.id}
               label={t(locale, column.labelKey)}
+              state={stateForColumn(column.id)}
               x={columnX(index)}
             />
           ))}
@@ -120,38 +134,123 @@ export function TeleportationCircuit({
             measureX={measureX}
           />
 
-          <GateSymbol label="|ψ⟩" x={columnX(0)} y={WIRE_Y.q0} />
-          <GateSymbol label="|0⟩" muted x={columnX(0)} y={WIRE_Y.q1} />
-          <GateSymbol label="|0⟩" muted x={columnX(0)} y={WIRE_Y.q2} />
-          <GateSymbol label="H" x={columnX(1)} y={WIRE_Y.q1} />
+          <GateSymbol
+            label="|ψ⟩"
+            state={stateForColumn("prepare")}
+            x={columnX(0)}
+            y={WIRE_Y.q0}
+          />
+          <GateSymbol
+            label="|0⟩"
+            muted
+            state={stateForColumn("prepare")}
+            x={columnX(0)}
+            y={WIRE_Y.q1}
+          />
+          <GateSymbol
+            label="|0⟩"
+            muted
+            state={stateForColumn("prepare")}
+            x={columnX(0)}
+            y={WIRE_Y.q2}
+          />
+          <GateSymbol
+            label="H"
+            state={stateForColumn("h-q1")}
+            x={columnX(1)}
+            y={WIRE_Y.q1}
+          />
 
           <CnotColumn
             controlWire="q1"
+            state={stateForColumn("cnot-q1-q2")}
             targetWire="q2"
             x={columnX(2)}
           />
           <CnotColumn
             controlWire="q0"
+            state={stateForColumn("cnot-q0-q1")}
             targetWire="q1"
             x={columnX(3)}
           />
 
-          <GateSymbol label="H" x={columnX(4)} y={WIRE_Y.q0} />
-          <MeasurementSymbol x={measureX} y={WIRE_Y.q0} />
-          <MeasurementSymbol x={measureX} y={WIRE_Y.q1} />
-          <ClassicalBits outcome={outcome} x={bitsX} y={bitsY} />
-          <GateSymbol label={correctionLabel} x={correctionX} y={WIRE_Y.q2} />
-          <GateSymbol label="|ψ⟩" muted x={recoveredX} y={WIRE_Y.q2} />
+          <GateSymbol
+            label="H"
+            state={stateForColumn("h-q0")}
+            x={columnX(4)}
+            y={WIRE_Y.q0}
+          />
+          <MeasurementSymbol
+            state={stateForColumn("measure")}
+            x={measureX}
+            y={WIRE_Y.q0}
+          />
+          <MeasurementSymbol
+            state={stateForColumn("measure")}
+            x={measureX}
+            y={WIRE_Y.q1}
+          />
+          <ClassicalBits
+            outcome={outcome}
+            state={stateForColumn("bits")}
+            x={bitsX}
+            y={bitsY}
+          />
+          <GateSymbol
+            label={correctionLabel}
+            state={stateForColumn("correct")}
+            x={correctionX}
+            y={WIRE_Y.q2}
+          />
+          <GateSymbol
+            label="|ψ⟩"
+            muted
+            state={stateForColumn("recovered")}
+            x={recoveredX}
+            y={WIRE_Y.q2}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function ColumnHeader({ label, x }: { label: string; x: number }) {
+function stateClasses(state: CircuitColumnState): string {
+  if (state === "active") {
+    return "border-fuchsia-400 bg-fuchsia-500/15 text-fuchsia-700 ring-2 ring-fuchsia-300/50 dark:border-fuchsia-400/70 dark:bg-fuchsia-500/20 dark:text-fuchsia-100 dark:ring-fuchsia-400/30";
+  }
+  if (state === "completed") {
+    return "border-violet-300 bg-white text-slate-800 dark:border-violet-500/50 dark:bg-slate-900 dark:text-slate-100";
+  }
+  return "border-slate-200 bg-slate-100 text-slate-500 opacity-55 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400";
+}
+
+function lineStateClasses(state: CircuitColumnState): string {
+  if (state === "active") return "bg-fuchsia-500 dark:bg-fuchsia-300";
+  if (state === "completed") return "bg-slate-600 dark:bg-slate-300";
+  return "bg-slate-300 opacity-55 dark:bg-slate-700";
+}
+
+function ColumnHeader({
+  label,
+  state,
+  x,
+}: {
+  label: string;
+  state: CircuitColumnState;
+  x: number;
+}) {
   return (
     <div
-      className="absolute top-0 flex w-20 -translate-x-1/2 flex-col items-center gap-1 text-center text-[11px] font-semibold leading-tight text-slate-600 dark:text-slate-300"
+      aria-current={state === "active" ? "step" : undefined}
+      className={[
+        "absolute top-0 flex w-20 -translate-x-1/2 flex-col items-center gap-1 rounded-lg px-1.5 py-1 text-center text-[11px] font-semibold leading-tight transition motion-reduce:transition-none",
+        state === "active"
+          ? "bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-100"
+          : state === "completed"
+            ? "text-slate-700 dark:text-slate-200"
+            : "text-slate-400 dark:text-slate-500",
+      ].join(" ")}
       style={{ left: x }}
     >
       <span>{label}</span>
@@ -233,10 +332,12 @@ function ClassicalFlow({
 
 function CnotColumn({
   controlWire,
+  state,
   targetWire,
   x,
 }: {
   controlWire: CircuitWire;
+  state: CircuitColumnState;
   targetWire: CircuitWire;
   x: number;
 }) {
@@ -249,11 +350,11 @@ function CnotColumn({
     <>
       <span
         aria-hidden
-        className="absolute z-[2] w-px bg-slate-600 dark:bg-slate-300"
+        className={["absolute z-[2] w-px", lineStateClasses(state)].join(" ")}
         style={{ height, left: x, top }}
       />
-      <ControlSymbol x={x} y={controlY} />
-      <TargetSymbol x={x} y={targetY} />
+      <ControlSymbol state={state} x={x} y={controlY} />
+      <TargetSymbol state={state} x={x} y={targetY} />
     </>
   );
 }
@@ -261,21 +362,22 @@ function CnotColumn({
 function GateSymbol({
   label,
   muted = false,
+  state = "completed",
   x,
   y,
 }: {
   label: string;
   muted?: boolean;
+  state?: CircuitColumnState;
   x: number;
   y: number;
 }) {
   return (
     <span
       className={[
-        "absolute z-10 flex min-w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-2 py-1 font-mono text-sm font-semibold shadow-sm",
-        muted
-          ? "border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
-          : "border-violet-300 bg-white text-slate-900 dark:border-violet-500/60 dark:bg-slate-900 dark:text-slate-100",
+        "absolute z-10 flex min-w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-2 py-1 font-mono text-sm font-semibold shadow-sm transition motion-reduce:transition-none",
+        stateClasses(state),
+        muted && state !== "active" ? "opacity-70" : "",
       ].join(" ")}
       style={{ left: x, top: y }}
     >
@@ -284,10 +386,21 @@ function GateSymbol({
   );
 }
 
-function MeasurementSymbol({ x, y }: { x: number; y: number }) {
+function MeasurementSymbol({
+  state,
+  x,
+  y,
+}: {
+  state: CircuitColumnState;
+  x: number;
+  y: number;
+}) {
   return (
     <span
-      className="absolute z-10 flex h-9 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border border-slate-300 bg-white font-mono text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+      className={[
+        "absolute z-10 flex h-9 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border font-mono text-sm font-semibold shadow-sm transition motion-reduce:transition-none",
+        stateClasses(state),
+      ].join(" ")}
       style={{ left: x, top: y }}
     >
       M
@@ -297,16 +410,21 @@ function MeasurementSymbol({ x, y }: { x: number; y: number }) {
 
 function ClassicalBits({
   outcome,
+  state,
   x,
   y,
 }: {
   outcome: AliceMeasurementOutcome;
+  state: CircuitColumnState;
   x: number;
   y: number;
 }) {
   return (
     <span
-      className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 font-mono text-[11px] font-semibold leading-none text-slate-600 shadow-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200"
+      className={[
+        "absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1 rounded-xl border border-dashed px-3 py-2 font-mono text-[11px] font-semibold leading-none shadow-sm transition motion-reduce:transition-none",
+        stateClasses(state),
+      ].join(" ")}
       style={{ left: x, top: y }}
     >
       <span>m0 = {outcome[0]}</span>
@@ -315,19 +433,41 @@ function ClassicalBits({
   );
 }
 
-function ControlSymbol({ x, y }: { x: number; y: number }) {
+function ControlSymbol({
+  state,
+  x,
+  y,
+}: {
+  state: CircuitColumnState;
+  x: number;
+  y: number;
+}) {
   return (
     <span
-      className="absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-900 bg-white dark:border-slate-100 dark:bg-slate-900"
+      className={[
+        "absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition motion-reduce:transition-none",
+        stateClasses(state),
+      ].join(" ")}
       style={{ left: x, top: y }}
     />
   );
 }
 
-function TargetSymbol({ x, y }: { x: number; y: number }) {
+function TargetSymbol({
+  state,
+  x,
+  y,
+}: {
+  state: CircuitColumnState;
+  x: number;
+  y: number;
+}) {
   return (
     <span
-      className="absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-slate-900 bg-white font-mono text-lg leading-none text-slate-900 dark:border-slate-100 dark:bg-slate-900 dark:text-slate-100"
+      className={[
+        "absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 font-mono text-lg leading-none shadow-sm transition motion-reduce:transition-none",
+        stateClasses(state),
+      ].join(" ")}
       style={{ left: x, top: y }}
     >
       ⊕

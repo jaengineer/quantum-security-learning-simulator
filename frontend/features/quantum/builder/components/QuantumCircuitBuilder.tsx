@@ -42,66 +42,25 @@ import { EntanglementPanel } from "@/features/quantum/builder/components/Entangl
 import { GatePalette } from "@/features/quantum/builder/components/GatePalette";
 import { SimulationResultPanel } from "@/features/quantum/builder/components/SimulationResultPanel";
 import { StepByStepExplanation } from "@/features/quantum/builder/components/StepByStepExplanation";
+import {
+  createPaletteDropGate,
+  makeBuilderGateInstance,
+  resolveDropTargetQubit,
+  retargetSingleQubitGate,
+} from "@/features/quantum/builder/components/gateTargeting";
 import type {
   BuilderPreset,
   BuilderPresetGate,
 } from "@/features/quantum/builder/data/presets";
-import { getGate } from "@/features/quantum/builder/math/quantum-gates";
 import { simulate } from "@/features/quantum/builder/math/quantum-simulator";
 import type {
   BuilderGateInstance,
   BuilderQubitCount,
-  BuilderQubitIndex,
   GateId,
 } from "@/features/quantum/builder/types";
-import { isBuilderQubitIndex } from "@/features/quantum/builder/types";
-
-function newUid(): string {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  return `gate-${Math.random().toString(36).slice(2)}-${Date.now()}`;
-}
-
-interface GateInstanceOptions {
-  theta?: number;
-  targetQubit?: BuilderQubitIndex;
-  controlQubit?: BuilderQubitIndex;
-  targetQubits?: readonly [0, 1];
-}
-
-function makeInstance(
-  id: GateId,
-  options: GateInstanceOptions = {}
-): BuilderGateInstance {
-  const def = getGate(id);
-  const base = {
-    id: newUid(),
-    gateId: id,
-    arity: def.arity,
-    params: def.parametric ? { theta: options.theta ?? Math.PI / 2 } : undefined,
-  } satisfies BuilderGateInstance;
-
-  if (def.arity === 2 && id === "SWAP") {
-    return { ...base, targetQubits: [0, 1] };
-  }
-
-  if (def.arity === 2) {
-    return {
-      ...base,
-      controlQubit: options.controlQubit ?? 0,
-      targetQubit: options.targetQubit ?? 1,
-    };
-  }
-
-  return { ...base, targetQubit: options.targetQubit ?? 0 };
-}
 
 function makeInstanceFromPreset(spec: BuilderPresetGate): BuilderGateInstance {
-  return makeInstance(spec.gateId, {
+  return makeBuilderGateInstance(spec.gateId, {
     theta: spec.params?.theta,
     targetQubit: spec.targetQubit,
     controlQubit: spec.controlQubit,
@@ -167,37 +126,41 @@ export function QuantumCircuitBuilder() {
       const gateId = active.data.current?.gateId as GateId | undefined;
       const theta = active.data.current?.theta as number | undefined;
       const rawTargetQubit = over.data.current?.targetQubit;
-      const targetQubit = isBuilderQubitIndex(rawTargetQubit)
-        ? rawTargetQubit
-        : undefined;
+      const targetQubit = resolveDropTargetQubit(rawTargetQubit, over.id);
       if (!gateId) return;
-      const def = getGate(gateId);
-      if (def.arity === 2 && qubitCount !== 2) return;
       // Only append when dropped onto the canvas drop zone or another canvas
       // item. Drops anywhere else are ignored.
       if (overSource !== "canvas-drop" && overSource !== "canvas") return;
       setGates((current) => {
-        if (def.arity === 1) {
-          return [
-            ...current,
-            makeInstance(gateId, {
-              theta,
-              targetQubit: qubitCount === 2 ? targetQubit ?? 0 : 0,
-            }),
-          ];
-        }
-        if (gateId === "SWAP") {
-          return [...current, makeInstance(gateId)];
-        }
-        const controlledTarget = targetQubit ?? 1;
-        const controlQubit = controlledTarget === 0 ? 1 : 0;
-        return [
-          ...current,
-          makeInstance(gateId, {
-            controlQubit,
-            targetQubit: controlledTarget,
-          }),
-        ];
+        const nextGate = createPaletteDropGate({
+          gateId,
+          qubitCount,
+          targetQubit,
+          theta,
+        });
+        return nextGate ? [...current, nextGate] : current;
+      });
+      return;
+    }
+
+    if (activeSource === "canvas" && overSource === "canvas-drop") {
+      const activeUid = active.id as string;
+      const targetQubit = resolveDropTargetQubit(
+        over.data.current?.targetQubit,
+        over.id
+      );
+      setGates((current) => {
+        const activeGate = current.find((g) => g.id === activeUid);
+        if (!activeGate) return current;
+        const retargeted = retargetSingleQubitGate(
+          activeGate,
+          qubitCount,
+          targetQubit
+        );
+        if (!retargeted) return current;
+        return current.map((gate) =>
+          gate.id === activeUid ? retargeted : gate
+        );
       });
       return;
     }
