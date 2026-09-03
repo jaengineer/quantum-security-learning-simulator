@@ -17,7 +17,6 @@ export const TELEPORTATION_UI_STRINGS = {
     en: "Follow the three-qubit protocol without exposing 3-qubit editing in the generic Builder: q0 carries Alice's input, q1 is Alice's Bell qubit and q2 is Bob's recovered state.",
     es: "Sigue el protocolo de tres qubits sin exponer edición de tres qubits en el Builder genérico: q0 contiene la entrada de Alice, q1 es el qubit de Bell de Alice y q2 es el estado recuperado de Bob.",
   },
-  language: { en: "Language", es: "Idioma" },
   input_state: { en: "Input state", es: "Estado de entrada" },
   protocol: { en: "Protocol", es: "Protocolo" },
   protocol_step: { en: "Protocol step", es: "Paso del protocolo" },

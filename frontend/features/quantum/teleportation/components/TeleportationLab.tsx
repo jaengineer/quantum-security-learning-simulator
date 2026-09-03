@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { QuantumFormula } from "@/components/quantum/QuantumFormula";
 import { BlochSphere3D } from "@/components/quantum/bloch/BlochSphere3D";
@@ -29,17 +29,10 @@ function t(locale: Locale, key: keyof typeof TELEPORTATION_UI_STRINGS): string {
 }
 
 interface TeleportationLabProps {
-  locale?: Locale;
-  onLocaleChange?: (locale: Locale) => void;
+  locale: Locale;
 }
 
-export function TeleportationLab({
-  locale: controlledLocale,
-  onLocaleChange,
-}: TeleportationLabProps = {}) {
-  const [localLocale, setLocalLocale] = useState<Locale>("en");
-  const locale = controlledLocale ?? localLocale;
-  const setLocale = onLocaleChange ?? setLocalLocale;
+export function TeleportationLab({ locale }: TeleportationLabProps) {
   const [inputId, setInputId] = useState(TELEPORTATION_INPUT_STATES[0].id);
   const [outcome, setOutcome] = useState<AliceMeasurementOutcome>("00");
   const [activePhaseId, setActivePhaseId] =
@@ -116,18 +109,6 @@ export function TeleportationLab({
         </section>
 
         <aside className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white/85 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/55">
-          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            {t(locale, "language")}
-            <select
-              value={locale}
-              onChange={(event) => setLocale(event.target.value as Locale)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm normal-case tracking-normal text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <option value="en">English</option>
-              <option value="es">Español</option>
-            </select>
-          </label>
-
           <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
             {t(locale, "input_state")}
             <select
@@ -256,6 +237,18 @@ function ProtocolWalkthrough({
   onSelectPhase(phaseId: TeleportationProtocolPhaseId): void;
   phaseView: TeleportationPhaseView;
 }) {
+  const phaseButtonRefs = useRef<
+    Partial<Record<TeleportationProtocolPhaseId, HTMLButtonElement | null>>
+  >({});
+
+  useEffect(() => {
+    phaseButtonRefs.current[activePhaseId]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activePhaseId]);
+
   return (
     <section className="rounded-2xl border border-fuchsia-200 bg-white p-4 shadow-sm dark:border-fuchsia-500/30 dark:bg-slate-900/70">
       <div className="flex flex-col gap-3">
@@ -289,12 +282,18 @@ function ProtocolWalkthrough({
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 quantum-thin-scroll">
+        <div
+          data-testid="teleportation-phase-nav"
+          className="flex flex-nowrap gap-2 overflow-x-auto pb-1 quantum-thin-scroll"
+        >
           {TELEPORTATION_PROTOCOL_PHASES.map((phase, index) => {
             const selected = phase.id === activePhaseId;
             return (
               <button
                 key={phase.id}
+                ref={(node) => {
+                  phaseButtonRefs.current[phase.id] = node;
+                }}
                 type="button"
                 onClick={() => onSelectPhase(phase.id)}
                 aria-pressed={selected}
@@ -427,11 +426,13 @@ function PhaseDynamicDetails({
   }
 
   if (phaseView.id === "initial") {
+    const states = phaseView.initialQubitStates;
+
     return (
       <dl className="grid gap-2 text-xs sm:grid-cols-3">
-        <FormulaDetail label={t(locale, "alice_input")} latex={phaseView.inputStateLatex} />
-        <FormulaDetail label="q1" latex="\\lvert0\\rangle" />
-        <FormulaDetail label="q2" latex="\\lvert0\\rangle" />
+        <FormulaDetail label="q0" latex={states?.q0} />
+        <FormulaDetail label="q1" latex={states?.q1} />
+        <FormulaDetail label="q2" latex={states?.q2} />
       </dl>
     );
   }

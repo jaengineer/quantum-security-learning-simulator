@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { formatDiracStateLatex } from "@/features/quantum/builder/format/formatDiracState";
 import { TELEPORTATION_INPUT_STATES } from "@/features/quantum/teleportation/data/inputStates";
 import {
   TELEPORTATION_PROTOCOL_PHASES,
@@ -13,6 +14,10 @@ import {
 } from "@/features/quantum/teleportation/math/teleportation-protocol";
 
 const EPS = 1e-6;
+const ZERO_STATE_LATEX = formatDiracStateLatex([
+  { re: 1, im: 0 },
+  { re: 0, im: 0 },
+]);
 
 const EXPECTED_PHASE_ORDER = [
   "initial",
@@ -92,6 +97,79 @@ test("measurement phase exposes the four equally likely branches", () => {
     ALICE_MEASUREMENT_OUTCOMES
   );
   assert.ok(view.branchOptions?.every((option) => option.probability === 0.25));
+});
+
+test("initial phase exposes q0/q1/q2 through existing Dirac state rendering", () => {
+  const input = TELEPORTATION_INPUT_STATES[0];
+  const branch = evaluateTeleportationBranch(input, "00");
+  const view = getTeleportationPhaseView({
+    phaseId: "initial",
+    input,
+    branch,
+    locale: "es",
+  });
+
+  assert.deepEqual(view.initialQubitStates, {
+    q0: input.latex,
+    q1: ZERO_STATE_LATEX,
+    q2: ZERO_STATE_LATEX,
+  });
+});
+
+test("Bell-pair explanation is precise about CNOT acting on the prepared superposition", () => {
+  const phase = TELEPORTATION_PROTOCOL_PHASES.find(
+    (candidate) => candidate.id === "bell-pair"
+  );
+
+  assert.ok(phase);
+  assert.match(phase.description.en, /prepared superposition/i);
+  assert.match(phase.description.es, /superposición preparada/i);
+  assert.equal(
+    phase.formulaLatex,
+    "\\lvert\\Phi^+\\rangle_{q1q2}=\\frac{\\lvert00\\rangle+\\lvert11\\rangle}{\\sqrt2}"
+  );
+});
+
+test("recovered-state phase explains that the state, not matter, is teleported", () => {
+  const phase = TELEPORTATION_PROTOCOL_PHASES.find(
+    (candidate) => candidate.id === "recovered"
+  );
+
+  assert.ok(phase);
+  assert.match(phase.description.en, /No matter or physical qubit is transported/);
+  assert.match(phase.description.es, /No se transporta materia ni el qubit físico/);
+});
+
+test("guided correction views preserve branch mapping from the math engine", () => {
+  const input = TELEPORTATION_INPUT_STATES[2];
+  const expectedCorrectionByOutcome = {
+    "00": "I",
+    "01": "X",
+    "10": "Z",
+    "11": "XZ",
+  } as const;
+
+  for (const outcome of ALICE_MEASUREMENT_OUTCOMES) {
+    const branch = evaluateTeleportationBranch(input, outcome);
+    const correction = getTeleportationPhaseView({
+      phaseId: "bob-correction",
+      input,
+      branch,
+      locale: "en",
+    });
+    const recovered = getTeleportationPhaseView({
+      phaseId: "recovered",
+      input,
+      branch,
+      locale: "en",
+    });
+
+    assert.equal(correction.correctionLabel, expectedCorrectionByOutcome[outcome]);
+    assert.equal(correction.correctionLabel, branch.correction.label);
+    assert.equal(correction.bobUncorrectedStateLatex, formatDiracStateLatex(branch.bobUncorrectedState));
+    assert.equal(recovered.bobCorrectedStateLatex, formatDiracStateLatex(branch.bobCorrectedState));
+    assert.equal(recovered.fidelity, branch.fidelity);
+  }
 });
 
 test("phase views adapt to every input state and selected branch", () => {

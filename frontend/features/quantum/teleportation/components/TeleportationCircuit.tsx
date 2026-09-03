@@ -123,7 +123,7 @@ export function TeleportationCircuit({
         </div>
 
         <div
-          className="relative overflow-hidden rounded-xl bg-white/70 dark:bg-slate-950/10"
+          className="relative overflow-hidden rounded-xl bg-white dark:bg-slate-950"
           style={{ height: WIRE_AREA_HEIGHT, width: TIMELINE_WIDTH }}
         >
           <WireLayer />
@@ -217,12 +217,12 @@ export function TeleportationCircuit({
 
 function stateClasses(state: CircuitColumnState): string {
   if (state === "active") {
-    return "border-fuchsia-400 bg-fuchsia-500/15 text-fuchsia-700 ring-2 ring-fuchsia-300/50 dark:border-fuchsia-400/70 dark:bg-fuchsia-500/20 dark:text-fuchsia-100 dark:ring-fuchsia-400/30";
+    return "border-fuchsia-400 bg-fuchsia-50 text-fuchsia-700 ring-2 ring-fuchsia-300/50 dark:border-fuchsia-400/70 dark:bg-fuchsia-950 dark:text-fuchsia-100 dark:ring-fuchsia-400/30";
   }
   if (state === "completed") {
-    return "border-violet-300 bg-white text-slate-800 dark:border-violet-500/50 dark:bg-slate-900 dark:text-slate-100";
+    return "border-violet-300 bg-white text-slate-800 dark:border-violet-500/50 dark:bg-slate-950 dark:text-slate-100";
   }
-  return "border-slate-200 bg-slate-100 text-slate-500 opacity-55 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400";
+  return "border-slate-200 bg-white text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-500";
 }
 
 function lineStateClasses(state: CircuitColumnState): string {
@@ -359,6 +359,31 @@ function CnotColumn({
   );
 }
 
+function CircuitElementMask({
+  className,
+  height,
+  width,
+  x,
+  y,
+}: {
+  className: string;
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}) {
+  return (
+    <span
+      aria-hidden
+      className={[
+        "absolute z-[8] -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-950",
+        className,
+      ].join(" ")}
+      style={{ height, left: x, top: y, width }}
+    />
+  );
+}
+
 function GateSymbol({
   label,
   muted = false,
@@ -373,16 +398,27 @@ function GateSymbol({
   y: number;
 }) {
   return (
-    <span
-      className={[
-        "absolute z-10 flex min-w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-2 py-1 font-mono text-sm font-semibold shadow-sm transition motion-reduce:transition-none",
-        stateClasses(state),
-        muted && state !== "active" ? "opacity-70" : "",
-      ].join(" ")}
-      style={{ left: x, top: y }}
-    >
-      {label}
-    </span>
+    <>
+      <CircuitElementMask
+        className="rounded-lg"
+        height={36}
+        width={50}
+        x={x}
+        y={y}
+      />
+      <span
+        className={[
+          "absolute z-10 flex min-w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border px-2 py-1 font-mono text-sm font-semibold shadow-sm transition motion-reduce:transition-none",
+          stateClasses(state),
+          muted && state !== "active"
+            ? "text-slate-400 dark:text-slate-500"
+            : "",
+        ].join(" ")}
+        style={{ left: x, top: y }}
+      >
+        {label}
+      </span>
+    </>
   );
 }
 
@@ -396,15 +432,24 @@ function MeasurementSymbol({
   y: number;
 }) {
   return (
-    <span
-      className={[
-        "absolute z-10 flex h-9 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border font-mono text-sm font-semibold shadow-sm transition motion-reduce:transition-none",
-        stateClasses(state),
-      ].join(" ")}
-      style={{ left: x, top: y }}
-    >
-      M
-    </span>
+    <>
+      <CircuitElementMask
+        className="rounded-lg"
+        height={40}
+        width={48}
+        x={x}
+        y={y}
+      />
+      <span
+        className={[
+          "absolute z-10 flex h-9 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-lg border font-mono text-sm font-semibold shadow-sm transition motion-reduce:transition-none",
+          stateClasses(state),
+        ].join(" ")}
+        style={{ left: x, top: y }}
+      >
+        M
+      </span>
+    </>
   );
 }
 
@@ -443,13 +488,22 @@ function ControlSymbol({
   y: number;
 }) {
   return (
-    <span
-      className={[
-        "absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition motion-reduce:transition-none",
-        stateClasses(state),
-      ].join(" ")}
-      style={{ left: x, top: y }}
-    />
+    <>
+      <CircuitElementMask
+        className="rounded-full"
+        height={28}
+        width={28}
+        x={x}
+        y={y}
+      />
+      <span
+        className={[
+          "absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition motion-reduce:transition-none",
+          stateClasses(state),
+        ].join(" ")}
+        style={{ left: x, top: y }}
+      />
+    </>
   );
 }
 
@@ -463,14 +517,23 @@ function TargetSymbol({
   y: number;
 }) {
   return (
-    <span
-      className={[
-        "absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 font-mono text-lg leading-none shadow-sm transition motion-reduce:transition-none",
-        stateClasses(state),
-      ].join(" ")}
-      style={{ left: x, top: y }}
-    >
-      ⊕
-    </span>
+    <>
+      <CircuitElementMask
+        className="rounded-full"
+        height={44}
+        width={44}
+        x={x}
+        y={y}
+      />
+      <span
+        className={[
+          "absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 font-mono text-lg leading-none shadow-sm transition motion-reduce:transition-none",
+          stateClasses(state),
+        ].join(" ")}
+        style={{ left: x, top: y }}
+      >
+        ⊕
+      </span>
+    </>
   );
 }

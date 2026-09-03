@@ -53,6 +53,7 @@ export interface TeleportationPhaseView {
   title: string;
   description: string;
   formulaLatex?: string;
+  initialQubitStates?: { q0: string; q1: string; q2: string };
   inputStateLatex?: string;
   bobUncorrectedStateLatex?: string;
   bobCorrectedStateLatex?: string;
@@ -98,8 +99,8 @@ export const TELEPORTATION_PROTOCOL_PHASES: readonly TeleportationProtocolPhase[
     label: { en: "Bell pair", es: "Par de Bell" },
     title: { en: "Create Bell pair", es: "Crear el par de Bell" },
     description: {
-      en: "CNOT(q1 -> q2) entangles q1 and q2. q1 stays with Alice; q2 belongs to Bob.",
-      es: "CNOT(q1 -> q2) entrelaza q1 y q2. q1 permanece con Alice; q2 pertenece a Bob.",
+      en: "Applying CNOT(q1 -> q2) to the prepared superposition on q1 and the |0> state of q2 generates the Bell state |Phi+>, entangling q1 and q2. q1 stays with Alice; q2 belongs to Bob.",
+      es: "Al aplicar CNOT(q1 -> q2) sobre la superposición preparada en q1 y el estado |0> de q2, se genera el estado de Bell |Phi+>, entrelazando q1 y q2. q1 permanece con Alice y q2 pertenece a Bob.",
     },
     activeColumnIds: ["cnot-q1-q2"],
     completedColumnIds: ["prepare", "h-q1"],
@@ -197,8 +198,8 @@ export const TELEPORTATION_PROTOCOL_PHASES: readonly TeleportationProtocolPhase[
     label: { en: "Recovered", es: "Recuperado" },
     title: { en: "Recovered state", es: "Estado recuperado" },
     description: {
-      en: "Bob's corrected qubit matches Alice's input state with fidelity near one; global phase differences are physically equivalent.",
-      es: "El qubit corregido de Bob coincide con el estado de entrada de Alice con fidelidad cercana a uno; las diferencias de fase global son físicamente equivalentes.",
+      en: "No matter or physical qubit is transported. What is reconstructed in q2 is the quantum state originally carried by q0. Fidelity near one confirms the recovery; global phase differences are physically equivalent.",
+      es: "No se transporta materia ni el qubit físico q0. Lo que se reconstruye en q2 es el estado cuántico que originalmente tenía q0. Una fidelidad cercana a uno confirma la recuperación; las diferencias de fase global son físicamente equivalentes.",
     },
     activeColumnIds: ["recovered"],
     completedColumnIds: [
@@ -215,6 +216,11 @@ export const TELEPORTATION_PROTOCOL_PHASES: readonly TeleportationProtocolPhase[
       "F=\\left|\\langle\\psi_{Alice}\\mid\\psi_{Bob}\\rangle\\right|^2\\approx1",
   },
 ] as const;
+
+const ZERO_QUBIT_STATE_LATEX = formatDiracStateLatex([
+  { re: 1, im: 0 },
+  { re: 0, im: 0 },
+]);
 
 export function getPhaseNavigationState(phaseId: TeleportationProtocolPhaseId) {
   const index = TELEPORTATION_PROTOCOL_PHASES.findIndex(
@@ -287,6 +293,17 @@ export function getTeleportationPhaseView({
 
   if (phase.id === "measurement-basis") {
     return { ...base, formulaLatex: groupedTeleportationFormula(input) };
+  }
+
+  if (phase.id === "initial") {
+    return {
+      ...base,
+      initialQubitStates: {
+        q0: input.latex,
+        q1: ZERO_QUBIT_STATE_LATEX,
+        q2: ZERO_QUBIT_STATE_LATEX,
+      },
+    };
   }
 
   if (phase.id === "measurement") {
