@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { CategoryBadge } from "@/features/theory/components/CategoryBadge";
 import { LevelBadge } from "@/features/theory/components/LevelBadge";
 import { NotationBadge } from "@/features/theory/components/NotationBadge";
@@ -15,9 +13,8 @@ interface TheoryConceptCardProps {
 export function TheoryConceptCard({ concept }: TheoryConceptCardProps) {
   const t = useT();
   return (
-    <Link
+    <a
       href={`/theory/${concept.id}`}
-      prefetch
       className="group flex h-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 dark:border-slate-700/60 dark:bg-slate-900/40 dark:hover:border-violet-400"
     >
       <header className="flex flex-col gap-2">
@@ -52,6 +49,6 @@ export function TheoryConceptCard({ concept }: TheoryConceptCardProps) {
         {t("open_concept")}
         <span aria-hidden>→</span>
       </span>
-    </Link>
+    </a>
   );
 }
